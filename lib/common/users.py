@@ -110,7 +110,7 @@ class Users():
             cur = conn.cursor()
             user = cur.execute("SELECT password from users WHERE username = ? AND enabled = true LIMIT 1", (user_name,)).fetchone()
             
-            if user == None:
+            if user is None:
                 return None
             
             if not self.check_password(password, user[0]):
@@ -141,7 +141,7 @@ class Users():
             self.lock.acquire()
             cur = conn.cursor()
             cur.execute("SELECT id, username, api_token, last_logon_time, enabled, admin FROM users WHERE api_token = ? LIMIT 1", (token,))
-            [ id, username, api_token, last_logon_time, enabled, admin ] = cur.fetchone()
+            [id, username, api_token, last_logon_time, enabled, admin ] = cur.fetchone()
             
             return { 'id': id, 'username': username, 'api_token': api_token, 'last_logon_time': last_logon_time, 'enabled': bool(enabled), 'admin': bool(admin) }
         finally:

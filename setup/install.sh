@@ -81,13 +81,8 @@ function install_powershell() {
 
 function install_xar() {
 	# xar-1.6.1 has an incompatability with libssl 1.1.x that is patched here
-	# for older OS on libssl 1.0.x, we continue to use 1.6.1
-	if is_libssl_1_0; then
-		wget https://github.com/BC-SECURITY/xar/archive/xar-1.6.1.tar.gz
-		tar -xvf xar-1.6.1.tar.gz && mv xar-xar-1.6.1/xar/ xar-1.6.1/
-	else
-		wget https://github.com/BC-SECURITY/xar/archive/xar-1.6.1-patch.tar.gz
-		tar -xvf xar-1.6.1-patch.tar.gz && mv xar-xar-1.6.1-patch/xar/ xar-1.6.1/
+	wget https://github.com/BC-SECURITY/xar/archive/xar-1.6.1-patch.tar.gz
+	tar -xvf xar-1.6.1-patch.tar.gz && mv xar-xar-1.6.1-patch/xar/ xar-1.6.1/
 	fi
 	(cd xar-1.6.1 && ./autogen.sh)
 	(cd xar-1.6.1 && ./configure)
@@ -100,22 +95,6 @@ function install_bomutils() {
 	(cd bomutils && make)
 	(cd bomutils && make install)
 	chmod 755 bomutils/build/bin/mkbom && sudo cp bomutils/build/bin/mkbom /usr/local/bin/.
-}
-
-# Because of some dependencies (xar) needing to know which OS has libssl 1.0
-# and because some OS are locked into 1.0, we are checking for Ubuntu < 18 and Debian < 9 here.
-function is_libssl_1_0() {
-	if lsb_release -d | grep -q "Ubuntu"; then
-		if [ $(lsb_release -rs | cut -d "." -f 1) -lt 18 ]; then
-			return
-		fi
-	fi
-
-	if [ $(cut -d "." -f 1 /etc/debian_version) -lt 9 ]; then
-		return
-	fi
-
-	false
 }
 
 # Ask for the administrator password upfront so sudo is no longer required at Installation.
@@ -134,24 +113,12 @@ if lsb_release -d | grep -q "Kali"; then
 	apt-get update
 	sudo apt-get install -y make g++ python-dev python-m2crypto swig python-pip libxml2-dev default-jdk zlib1g-dev libssl1.1 build-essential libssl-dev libxml2-dev zlib1g-dev
 elif lsb_release -d | grep -q "Ubuntu"; then
-	if is_libssl_1_0; then
-		LibSSL_pkgs="libssl1.0.0 libssl-dev"
-		Pip_file="requirements_libssl1.0.txt"
-	else
-		LibSSL_pkgs="libssl1.1 libssl-dev"
-	fi
 	sudo apt-get update
-	sudo apt-get install -y make g++ python-dev python-m2crypto swig python-pip libxml2-dev default-jdk $LibSSL_pkgs build-essential
+	sudo apt-get install -y make g++ python-dev python-m2crypto swig python-pip libxml2-dev default-jdk libssl1.1 libssl-dev build-essential
 else
 	echo "Unknown distro - Debian/Ubuntu Fallback"
-	if is_libssl_1_0; then
-		LibSSL_pkgs="libssl1.0.0 libssl-dev"
-		Pip_file="requirements_libssl1.0.txt"
-	else
-		LibSSL_pkgs="libssl1.1 libssl-dev"
-	fi
 	sudo apt-get update
-	sudo apt-get install -y make g++ python-dev python-m2crypto swig python-pip libxml2-dev default-jdk libffi-dev $LibSSL_pkgs build-essential
+	sudo apt-get install -y make g++ python-dev python-m2crypto swig python-pip libxml2-dev default-jdk libffi-dev libssl1.1 libssl-dev build-essential
 fi
 
 install_xar
@@ -159,16 +126,6 @@ install_xar
 install_bomutils
 
 install_powershell
-
-if ls /usr/bin/ | grep -q "python3"; then
-	if ! type pip3 > /dev/null; then
-		sudo apt-get --assume-yes install python3-pip
-	fi
-	sudo pip3 install -r $Pip_file
-fi
-if ls /usr/bin/ | grep -q "python2"; then
-	sudo pip install -r $Pip_file
-fi
 
 # set up the database schema
 python ./setup_database.py
