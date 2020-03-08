@@ -17,7 +17,6 @@ def connect_to_db():
         conn.text_factory = str
         conn.isolation_level = None
         return conn
-    
     except Exception:
         print(helpers.color("[!] Could not connect to database"))
         print(helpers.color("[!] Please run database_setup.py"))
