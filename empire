@@ -12,6 +12,7 @@ import ast
 
 # Empire imports
 from lib.common import empire, helpers, users
+from lib.database import base, models
 
 # if running in python 2.7 set global utf8 encoding otherwise python 3 is already UTF-8 by default
 if sys.version[0] == '2':
@@ -71,7 +72,6 @@ def execute_db_query(conn, query, args=None):
     return results
 
 
-#TODO: Update with new commads
 ####################################################################
 #
 # The Empire RESTful API.
@@ -1463,6 +1463,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     database_check_docker()
+
+    session = base.session_factory()
+    users.Users(empire.MainMenu(args=args)).user_exists(1)
 
     if not args.restport:
         args.restport = '1337'
