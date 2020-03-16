@@ -10,7 +10,9 @@ from lib.database import base, models
 
 class Users():
     def __init__(self, mainMenu):
-        # TODO it looks like the session should be passed in
+        # TODO When accessed via the api we can just call base.Session() to get the current
+        # scoped session, but when coming from outside the api, we probably want to be able to pass in
+        # sessions. Maybe as an optional parameter? Not sure.
         self.session = base.Session()
 
         self.mainMenu = mainMenu
