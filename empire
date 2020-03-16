@@ -12,9 +12,12 @@ import ast
 
 # Empire imports
 from lib.common import empire, helpers, users
-from lib.database import base, models
+from lib.database import models
+from lib.database.base import Session
 
 # if running in python 2.7 set global utf8 encoding otherwise python 3 is already UTF-8 by default
+from lib.database.models import UserSchema
+
 if sys.version[0] == '2':
 	reload(sys)
 	sys.setdefaultencoding("utf-8")
@@ -201,11 +204,14 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         except:
             return make_response('', 401)
 
-
     @app.after_request
     def add_cors(response):
         response.headers['Access-Control-Allow-Origin'] = '*'
         return response
+
+    @app.teardown_request
+    def remove_session(ex):
+        Session.remove()
 
 
     @app.errorhandler(Exception)
@@ -1297,17 +1303,10 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         Returns JSON of the users from the backend database.
         """
-        reportingRaw = execute_db_query(conn, 'SELECT ID, username, last_logon_time, enabled, admin FROM users')
-        reporting_users = []
-        user_report = []
+        user_schema = UserSchema(many=True, exclude=("password",))
+        users = Session().query(models.User).all()
 
-        for reporting_users in reportingRaw:
-            [ID, username, last_logon_time, enabled, admin] = reporting_users
-            data = {"ID": ID, "username": username, "last_logon_time": last_logon_time, "enabled": bool(enabled), "admin": bool(admin)}
-            user_report.append(data)
-
-        return jsonify({'users': user_report})
-
+        return jsonify({'users': user_schema.dump(users)})
 
     @app.route('/api/users/me', methods=['GET'])
     def get_user_me():
@@ -1463,9 +1462,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     database_check_docker()
-
-    session = base.session_factory()
-    users.Users(empire.MainMenu(args=args)).user_exists(1)
 
     if not args.restport:
         args.restport = '1337'

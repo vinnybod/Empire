@@ -28,6 +28,7 @@ M2Crypto = "*"
 Jinja2 = "*"
 pylint = "*"
 sqlalchemy = "*"
+marshmallow-sqlalchemy = "*"
 
 [requires]
 python_version = "3.7"

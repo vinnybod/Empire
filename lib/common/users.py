@@ -11,7 +11,7 @@ from lib.database import base, models
 class Users():
     def __init__(self, mainMenu):
         # TODO it looks like the session should be passed in
-        self.session = base.session_factory()
+        self.session = base.Session()
 
         self.mainMenu = mainMenu
 
