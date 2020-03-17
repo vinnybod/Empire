@@ -1,57 +1,37 @@
-import threading
 import string
 import random
 import bcrypt
 from . import helpers
 import json
 from pydispatch import dispatcher
-from lib.database import base, models
+from lib.database import models
+from lib.database.base import Session
 
 
-class Users():
-    def __init__(self, mainMenu):
-        # TODO When accessed via the api we can just call base.Session() to get the current
-        # scoped session, but when coming from outside the api, we probably want to be able to pass in
-        # sessions. Maybe as an optional parameter? Not sure.
-        self.session = base.Session()
+class Users:
 
-        self.mainMenu = mainMenu
-
-        self.conn = self.mainMenu.conn
-
-        self.lock = threading.Lock()
-
-        self.args = self.mainMenu.args
-
-        self.users = {}
-
-    def get_db_connection(self):
-        """
-        Returns a handle to the DB
-        """
-        self.mainMenu.conn.row_factory = None
-        return self.mainMenu.conn
-
-    def user_exists(self, uid):
+    @staticmethod
+    def user_exists(uid):
         """
         Return whether a user exists or not
         """
-        exists = self.session.query(models.User).filter(models.User.id == uid).first()
+        exists = Session().query(models.User).filter(models.User.id == uid).first()
         if exists:
             return True
 
         return False
 
-    def add_new_user(self, user_name, password):
+    @staticmethod
+    def add_new_user(user_name, password):
         """
         Add new user to cache
         """
-        self.session.add(models.User(username=user_name,
-                                     password=self.get_hashed_password(password),
-                                     last_logon_time=helpers.get_datetime(),
-                                     enabled=True,
-                                     admin=False))
-        self.session.commit()
+        Session().add(models.User(username=user_name,
+                                  password=Users.get_hashed_password(password),
+                                  last_logon_time=helpers.get_datetime(),
+                                  enabled=True,
+                                  admin=False))
+        Session().commit()
         signal = json.dumps({
             'print': True,
             'message': "Added {} to Users".format(user_name)
@@ -60,26 +40,27 @@ class Users():
 
         return True
 
-    def disable_user(self, uid, disable):
+    @staticmethod
+    def disable_user(uid, disable):
         """
         Disable user
         """
-        if not self.user_exists(uid):
+        if not Users.user_exists(uid):
             signal = json.dumps({
                 'print': True,
                 'message': "Cannot disable user that does not exist"
             })
             message = False
-        elif self.is_admin(uid):
+        elif Users.is_admin(uid):
             signal = json.dumps({
                 'print': True,
                 'message': "Cannot disable admin account"
             })
             message = False
         else:
-            user = self.session.query(models.User).where(models.User.id == uid).first()
+            user = Session().query(models.User).where(models.User.id == uid).first()
             user.enabled = not disable
-            self.session.commit()
+            Session().commit()
 
             signal = json.dumps({
                 'print': True,
@@ -90,26 +71,28 @@ class Users():
         dispatcher.send(signal, sender="Users")
         return message
 
-    def user_login(self, user_name, password):
-        password_from_db = self.session.query(models.User.password) \
+    @staticmethod
+    def user_login(user_name, password):
+        print("sup boiiii")
+        password_from_db = Session().query(models.User.password) \
             .filter(models.User.username == user_name) \
-            .filter(models.User.enabled is True) \
+            .filter(models.User.enabled == True) \
             .first()
 
-        if password is None:
+        if password_from_db is None:
             return None
 
-        if not self.check_password(password, password_from_db):
+        if not Users.check_password(password, password_from_db.password):
             return None
 
-        user = self.session.query(models.User) \
+        user = Session().query(models.User) \
             .filter(models.User.username == user_name) \
             .first()
 
-        user.api_token = self.refresh_api_token()
+        user.api_token = Users.refresh_api_token()
         user.last_logon_time = helpers.get_datetime()
 
-        self.session.commit()
+        Session().commit()
         # dispatch the event
         signal = json.dumps({
             'print': True,
@@ -119,17 +102,19 @@ class Users():
 
         return user.api_token
 
-    def get_user_from_token(self, token):
-        return self.session.query(models.User).filter(models.User.api_token == token).first()
+    @staticmethod
+    def get_user_from_token(token):
+        return Session().query(models.User).filter(models.User.api_token == token).first()
 
-    def update_username(self, uid, username):
+    @staticmethod
+    def update_username(uid, username):
         """
         Update a user's username.
         Currently only when empire is start up with the username arg.
         """
-        user = self.session.query(models.User).filter(models.User.id == uid).first()
+        user = Session().query(models.User).filter(models.User.id == uid).first()
         user.username = username
-        self.session.commit()
+        Session().commit()
 
         # dispatch the event
         signal = json.dumps({
@@ -140,16 +125,17 @@ class Users():
 
         return True
 
-    def update_password(self, uid, password):
+    @staticmethod
+    def update_password(uid, password):
         """
         Update the last logon timestamp for a user
         """
-        if not self.user_exists(uid):
+        if not Users.user_exists(uid):
             return False
 
-        user = self.session.query(models.User).filter(models.User.id == uid).first()
-        user.password = self.get_hashed_password(password)
-        self.session.commit()
+        user = Session().query(models.User).filter(models.User.id == uid).first()
+        user.password = Users.get_hashed_password(password)
+        Session().commit()
 
         # dispatch the event
         signal = json.dumps({
@@ -160,10 +146,11 @@ class Users():
 
         return True
 
-    def user_logout(self, uid):
-        user = self.session.query(models.User).filter(models.User.id == uid).first()
+    @staticmethod
+    def user_logout(uid):
+        user = Session().query(models.User).filter(models.User.id == uid).first()
         user.api_token = None
-        self.session.commit()
+        Session().commit()
 
         # dispatch the event
         signal = json.dumps({
@@ -172,7 +159,8 @@ class Users():
         })
         dispatcher.send(signal, sender="Users")
 
-    def refresh_api_token(self):
+    @staticmethod
+    def refresh_api_token():
         """
         Generates a randomized RESTful API token and updates the value
         in the config stored in the backend database.
@@ -183,11 +171,12 @@ class Users():
 
         return api_token
 
-    def is_admin(self, uid):
+    @staticmethod
+    def is_admin(uid):
         """
         Returns whether a user is an admin or not.
         """
-        return self.session.query(models.User.admin).filter(models.User.id == uid).first()
+        return Session().query(models.User.admin).filter(models.User.id == uid).first()
 
     @staticmethod
     def get_hashed_password(plain_text_password):

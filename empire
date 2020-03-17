@@ -12,11 +12,12 @@ import ast
 
 # Empire imports
 from lib.api.input import DisableUserInputSchema, CreateUserInputSchema, LoginInputSchema
-from lib.common import empire, helpers, users
+from lib.common import empire, helpers
+from lib.common.users import Users
 from lib.database import models
 from lib.database.base import Session
 
-from lib.database.models import UserSchema
+from lib.database.models import UserSchema, ListenerSchema
 
 if sys.version[0] == '2':
     print(helpers.color("[!] Please use Python 3"))
@@ -162,18 +163,16 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
     main = empireMenu
 
-    u = users.Users(main)
-
     global serverExitCommand
 
     # if a username/password were not supplied, use the creds stored in the db
     # (dbUsername, dbPassword) = execute_db_query(conn, "SELECT api_username, api_password FROM config")[0]
 
     if username:
-        u.update_username(1, username[0])
+        Users.update_username(1, username[0])
 
     if password:
-        u.update_password(1, password[0])
+        Users.update_password(1, password[0])
 
     print('')
     print(" * Starting Empire RESTful API on port: %s" % (port))
@@ -196,7 +195,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         try:
             if request.path != '/api/admin/login':
                 token = request.args.get('token')
-                user = u.get_user_from_token(token)
+                user = Users.get_user_from_token(token)
                 if user:
                     g.user = user
                 else:
@@ -631,35 +630,23 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         Returns JSON describing all currently registered listeners.
         """
-        activeListenersRaw = execute_db_query(conn,
-                                              'SELECT id, name, module, listener_type, listener_category, options FROM listeners')
-        listeners = []
+        # Todo run query in listeners.py?
+        listener_schema = ListenerSchema(many=True)
+        listeners = Session().query(models.Listener).all()
 
-        for activeListener in activeListenersRaw:
-            [ID, name, module, listener_type, listener_category, options] = activeListener
-            listeners.append({'ID': ID, 'name': name, 'module': module, 'listener_type': listener_type,
-                              'listener_category': listener_category, 'options': pickle.loads(activeListener[5])})
-
-        return jsonify({'listeners': listeners})
+        return jsonify({'listeners': listener_schema.dump(listeners)})
 
     @app.route('/api/listeners/<string:listener_name>', methods=['GET'])
     def get_listener_name(listener_name):
         """
         Returns JSON describing the listener specified by listener_name.
         """
-        activeListenersRaw = execute_db_query(conn,
-                                              'SELECT id, name, module, listener_type, listener_category, options FROM listeners WHERE name=?',
-                                              [listener_name])
-        listeners = []
+        # This changed from an array to a single item
+        listener_schema = ListenerSchema()
+        listener = Session().query(models.Listener).filter(models.Listener.name == listener_name).first()
 
-        # if listener_name != "" and main.listeners.is_listener_valid(listener_name):
-        for activeListener in activeListenersRaw:
-            [ID, name, module, listener_type, listener_category, options] = activeListener
-            if name == listener_name:
-                listeners.append({'ID': ID, 'name': name, 'module': module, 'listener_type': listener_type,
-                                  'listener_category': listener_category, 'options': pickle.loads(activeListener[5])})
-
-            return jsonify({'listeners': listeners})
+        if listener:
+            return jsonify(listener_schema.dump(listener))
         else:
             return make_response(jsonify({'error': 'listener name %s not found' % (listener_name)}), 404)
 
@@ -668,6 +655,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         Kills the listener specified by listener_name.
         """
+        # is there a better way to do this? What if a listener was named all?
         if listener_name.lower() == "all":
             activeListenersRaw = execute_db_query(conn,
                                                   'SELECT id, name, module, listener_type, listener_category, options FROM listeners')
@@ -1322,7 +1310,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
         # try to prevent some basic bruting
         time.sleep(2)
-        token = u.user_login(request.json['username'], request.json['password'])
+        token = Users.user_login(request.json['username'], request.json['password'])
 
         if token:
             return jsonify({'token': token})
@@ -1334,7 +1322,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         Logs out current user
         """
-        u.user_logout(g.user.id)
+        Users.user_logout(g.user.id)
         return jsonify({'success': True})
 
     @app.route('/api/admin/restart', methods=['GET', 'POST', 'PUT'])
@@ -1380,10 +1368,10 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
             return jsonify({'errors': errors}, 400)
 
         # Check if user is an admin
-        if not u.is_admin(g.user.id):
+        if not Users.is_admin(g.user.id):
             abort(403)
 
-        status = u.add_new_user(request.json['username'], request.json['password'])
+        status = Users.add_new_user(request.json['username'], request.json['password'])
         return jsonify({'success': status})
 
     @app.route('/api/users/<int:uid>/disable', methods=['PUT'])
@@ -1400,10 +1388,10 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
         # User performing the action should be an admin.
         # User being updated should not be an admin.
-        if not u.is_admin(g.user.id) or u.is_admin(uid):
+        if not Users.is_admin(g.user.id) or Users.is_admin(uid):
             abort(403)
 
-        status = u.disable_user(uid, request.json['disable'])
+        status = Users.disable_user(uid, request.json['disable'])
         return jsonify({'success': status})
 
     @app.route('/api/users/<int:uid>/updatepassword', methods=['PUT'])
@@ -1415,10 +1403,10 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
             return jsonify({'errors': errors}, 400)
 
         # Must be an admin or updating self.
-        if not (u.is_admin(g.user.id) or uid == g.user.id):
+        if not (Users.is_admin(g.user.id) or uid == g.user.id):
             abort(403)
 
-        status = u.update_password(uid, request.json['password'])
+        status = Users.update_password(uid, request.json['password'])
         return jsonify({'success': status})
 
     if not os.path.exists('./data/empire-chain.pem'):
