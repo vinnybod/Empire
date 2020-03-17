@@ -1,5 +1,6 @@
 #!/bin/bash
 function install_powershell() {
+  # Todo check for the existence of powershell
 	# Deb 10.x
 	if cat /etc/debian_version | grep 10.* ; then
 		sudo apt-get install -y apt-transport-https curl
@@ -106,8 +107,6 @@ if [[ "$(pwd)" != *setup ]]
 then
 	cd ./setup
 fi
-
-Pip_file="requirements.txt"
 
 if lsb_release -d | grep -q "Kali"; then
 	apt-get update
