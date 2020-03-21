@@ -1,7 +1,12 @@
 from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from marshmallow import fields
 import pickle
+import time
+
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import column_property, object_session
+
 from .base import Base
 
 
@@ -32,6 +37,56 @@ class Listener(Base):
 
     def __repr__(self):
         return "<Listener(name='%s')>" % (
+            self.name)
+
+
+class Agent(Base):
+    __tablename__ = 'agents'
+    id = Column(Integer, Sequence("agent_id_seq"), primary_key=True)
+    name = Column(String(255), nullable=False)
+    listener = Column(String(255), nullable=False) # join?
+    session_id = Column(String(255), nullable=True)
+    language = Column(String(255), nullable=True)
+    language_version = Column(String(255), nullable=True)
+    delay = Column(Integer) #todo min value?
+    jitter = Column(Integer) #todo wtf is real
+    external_ip = Column(String(255), nullable=True)
+    internal_ip = Column(String(255), nullable=True)
+    username = Column(String(255), nullable=True)
+    high_integrity = Column(Integer) #min value?
+    process_name = Column(String(255), nullable=True)
+    process_id = Column(String(255), nullable=True)
+    hostname = Column(String(255), nullable=True)
+    os_details = Column(String(255), nullable=True)
+    session_key = Column(String(255), nullable=True)
+    nonce = Column(String(255), nullable=True)
+    checkin_time = Column(String(255), nullable=True)
+    lastseen_time = Column(String(255), nullable=True)
+    parent = Column(String(255), nullable=True) #join?
+    children = Column(String(255), nullable=True) #join?
+    servers = Column(String(255), nullable=True)
+    profile = Column(String(255), nullable=True)
+    functions = Column(String(255), nullable=True)
+    kill_date = Column(String(255), nullable=True)
+    working_hours = Column(String(255), nullable=True)
+    lost_limit = Column(Integer)
+    taskings = Column(String(255), nullable=True) #needed?
+    results = Column(String(255), nullable=True) #needed?
+
+    @hybrid_property
+    def stale(self):
+        interval_max = (self.delay + self.delay * self.jitter) + 30
+        agent_time = time.mktime(time.strptime(self.lastseen_time, "%Y-%m-%d %H:%M:%S"))
+        stale = agent_time < time.mktime(time.localtime()) - interval_max
+
+        return stale
+
+    # interval_max = column_property((delay + delay * jitter) + 30)
+    # agent_time = column_property(time.mktime(time.strptime(lastseen_time, "%Y-%m-%d %H:%M:%S")))
+    # stale = column_property(agent_time < time.mktime(time.localtime()) - interval_max)
+
+    def __repr__(self):
+        return "<Agent(name='%s')>" % (
             self.name)
 
 
@@ -78,3 +133,12 @@ class ListenerSchema(CamelCaseSqlAlchemyAutoSchema):
 
     options = PickleBlob()
 
+
+class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
+    class Meta:
+        model = Agent
+        include_relationships = True
+        load_instance = True
+
+    stale = fields.Bool()
+    # stale = auto_field(attribute="stale")

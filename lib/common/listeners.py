@@ -464,6 +464,7 @@ class Listeners(object):
 
 
     def is_listener_valid(self, name):
+        # todo use db?
         return name in self.activeListeners
 
 

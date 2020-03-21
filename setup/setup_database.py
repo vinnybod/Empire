@@ -82,51 +82,51 @@ c.execute('''CREATE TABLE config (
 
 # kick off the config component of the database
 c.execute("INSERT INTO config VALUES (?,?,?,?,?,?,?,?,?)", (STAGING_KEY, INSTALL_PATH, IP_WHITELIST, IP_BLACKLIST, '', '', False, OBFUSCATE, OBFUSCATE_COMMAND))
-
-c.execute('''CREATE TABLE "agents" (
-    "id" integer PRIMARY KEY,
-    "session_id" text,
-    "listener" text,
-    "name" text,
-    "language" text,
-    "language_version" text,
-    "delay" integer,
-    "jitter" real,
-    "external_ip" text,
-    "internal_ip" text,
-    "username" text,
-    "high_integrity" integer,
-    "process_name" text,
-    "process_id" text,
-    "hostname" text,
-    "os_details" text,
-    "session_key" text,
-    "nonce" text,
-    "checkin_time" text,
-    "lastseen_time" text,
-    "parent" text,
-    "children" text,
-    "servers" text,
-    "profile" text,
-    "functions" text,
-    "kill_date" text,
-    "working_hours" text,
-    "lost_limit" integer,
-    "taskings" text,
-    "results" text
-    )''')
+#
+# c.execute('''CREATE TABLE "agents" (
+#     "id" integer PRIMARY KEY,
+#     "session_id" text,
+#     "listener" text,
+#     "name" text,
+#     "language" text,
+#     "language_version" text,
+#     "delay" integer,
+#     "jitter" real,
+#     "external_ip" text,
+#     "internal_ip" text,
+#     "username" text,
+#     "high_integrity" integer,
+#     "process_name" text,
+#     "process_id" text,
+#     "hostname" text,
+#     "os_details" text,
+#     "session_key" text,
+#     "nonce" text,
+#     "checkin_time" text,
+#     "lastseen_time" text,
+#     "parent" text,
+#     "children" text,
+#     "servers" text,
+#     "profile" text,
+#     "functions" text,
+#     "kill_date" text,
+#     "working_hours" text,
+#     "lost_limit" integer,
+#     "taskings" text,
+#     "results" text
+#     )''')
 
 # the 'options' field contains a pickled version of all
 #   currently set listener options
-c.execute('''CREATE TABLE "listeners" (
-    "id" integer PRIMARY KEY,
-    "name" text,
-    "module" text,
-    "listener_type" text,
-    "listener_category" text,
-    "enabled" boolean,
-    "options" blob
-    )''')
+# c.execute('''CREATE TABLE "listeners" (
+#     "id" integer PRIMARY KEY,
+#     "name" text,
+#     "module" text,
+#     "listener_type" text,
+#     "listener_category" text,
+#     "enabled" boolean,
+#     "options" blob
+#     )''')
 
 # type = hash, plaintext, token
 #   for krbtgt, the domain SID is stored in misc
@@ -171,17 +171,16 @@ c.execute('''CREATE TABLE "reporting" (
     FOREIGN KEY(taskID) REFERENCES results(id)
 )''')
 
-c.execute('''CREATE TABLE "users" (
-    "id" integer PRIMARY KEY,
-    "username" text unique,
-    "password" text,
-    "api_token" text,
-    "last_logon_time" text,
-    "enabled" boolean,
-    "admin" boolean
-)''')
-
-c.execute("INSERT INTO users VALUES (?,?,?,?,?,?,?)", ("1", API_USERNAME, API_PASSWORD, "", "", True, True))
+# c.execute('''CREATE TABLE "users" (
+#     "id" integer PRIMARY KEY,
+#     "username" text unique,
+#     "password" text,
+#     "api_token" text,
+#     "last_logon_time" text,
+#     "enabled" boolean,
+#     "admin" boolean
+# )''')
+# c.execute("INSERT INTO users VALUES (?,?,?,?,?,?,?)", ("1", API_USERNAME, API_PASSWORD, "", "", True, True))
 
 c.execute('''CREATE TABLE "functions" (
     "Invoke_Empire" text,

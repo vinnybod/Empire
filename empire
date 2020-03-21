@@ -1,14 +1,23 @@
 #!/usr/bin/env python3
 
 from __future__ import print_function
-import sqlite3, argparse, sys, argparse, logging, json, string, subprocess
-import os, re, time, signal, copy, base64, pickle, random
-from flask import Flask, request, jsonify, make_response, abort, url_for, g
-from time import localtime, strftime, sleep
+
+import argparse
+import base64
+import copy
 import hashlib
-from OpenSSL import SSL
+import json
+import logging
+import os
+import signal
+import sqlite3
 import ssl
-import ast
+import subprocess
+import sys
+import time
+from time import sleep
+
+from flask import Flask, request, jsonify, make_response, abort, url_for, g
 
 # Empire imports
 from lib.api.input import DisableUserInputSchema, CreateUserInputSchema, LoginInputSchema
@@ -16,8 +25,7 @@ from lib.common import empire, helpers
 from lib.common.users import Users
 from lib.database import models
 from lib.database.base import Session
-
-from lib.database.models import UserSchema, ListenerSchema
+from lib.database.models import UserSchema, ListenerSchema, AgentSchema
 
 if sys.version[0] == '2':
     print(helpers.color("[!] Please use Python 3"))
@@ -657,11 +665,9 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         # is there a better way to do this? What if a listener was named all?
         if listener_name.lower() == "all":
-            activeListenersRaw = execute_db_query(conn,
-                                                  'SELECT id, name, module, listener_type, listener_category, options FROM listeners')
-            for activeListener in activeListenersRaw:
-                [ID, name, module, listener_type, listener_category, options] = activeListener
-                main.listeners.kill_listener(name)
+            listeners = Session().query(models.Listener).all()
+            for listener in listeners:
+                main.listeners.kill_listener(listener.name)
 
             return jsonify({'success': True})
         else:
@@ -699,105 +705,50 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         if listener_type.lower() not in main.listeners.loadedListeners:
             return make_response(jsonify({'error': 'listener type %s not found' % (listener_type)}), 404)
 
-        listenerObject = main.listeners.loadedListeners[listener_type]
+        listener_object = main.listeners.loadedListeners[listener_type]
         # set all passed options
         for option, values in request.json.items():
             if isinstance(values, bytes):
                 values = values.decode('UTF-8')
             if option == "Name":
-                listenerName = values
+                listener_name = values
 
+            # todo: Can we set listeners without overriding the defaults?
             returnVal = main.listeners.set_listener_option(listener_type, option, values)
             if not returnVal:
                 return make_response(
                     jsonify({'error': 'error setting listener value %s with option %s' % (option, values)}), 400)
 
-        main.listeners.start_listener(listener_type, listenerObject)
+        main.listeners.start_listener(listener_type, listener_object)
 
         # check to see if the listener was created
-        listenerID = main.listeners.get_listener_id(listenerName)
-        if listenerID:
-            return jsonify({'success': 'listener %s successfully started' % listenerName})
+        listener_id = main.listeners.get_listener_id(listener_name)
+        if listener_id:
+            return jsonify({'success': 'listener %s successfully started' % listener_name})
         else:
-            return jsonify({'error': 'failed to start listener %s' % listenerName})
+            #  todo Should be able to validate the input before getting to this point.
+            #   Shouldn't be a 200
+            return jsonify({'error': 'failed to start listener %s' % listener_name})
 
     @app.route('/api/agents', methods=['GET'])
     def get_agents():
         """
         Returns JSON describing all currently registered agents.
         """
-        activeAgentsRaw = execute_db_query(conn,
-                                           'SELECT id, session_id, listener, name, language, language_version, delay, jitter, external_ip, ' +
-                                           'internal_ip, username, high_integrity, process_name, process_id, hostname, os_details, session_key, nonce, checkin_time, ' +
-                                           'lastseen_time, parent, children, servers, profile, functions, kill_date, working_hours, lost_limit, taskings, results FROM agents')
-        agents = []
+        agent_schema = AgentSchema(many=True)
+        agents = Session().query(models.Agent).all()
 
-        for activeAgent in activeAgentsRaw:
-            [ID, session_id, listener, name, language, language_version, delay, jitter, external_ip, internal_ip,
-             username, high_integrity, process_name, process_id, hostname, os_details, session_key, nonce, checkin_time,
-             lastseen_time, parent, children, servers, profile, functions, kill_date, working_hours, lost_limit,
-             taskings, results] = activeAgent
-
-            intervalMax = (delay + delay * jitter) + 30
-
-            # get the agent last check in time
-            agentTime = time.mktime(time.strptime(lastseen_time, "%Y-%m-%d %H:%M:%S"))
-
-            stale = agentTime < time.mktime(time.localtime()) - intervalMax
-
-            if isinstance(session_key, bytes):
-                session_key = session_key.decode('latin-1').encode('utf-8')
-
-            agents.append({"ID": ID, "session_id": session_id, "listener": listener, "name": name, "language": language,
-                           "language_version": language_version, "delay": delay, "jitter": jitter,
-                           "external_ip": external_ip, "internal_ip": internal_ip, "username": username,
-                           "high_integrity": high_integrity, "process_name": process_name, "process_id": process_id,
-                           "hostname": hostname, "os_details": os_details, "session_key": session_key, "nonce": nonce,
-                           "checkin_time": checkin_time, "lastseen_time": lastseen_time, "parent": parent,
-                           "children": children, "servers": servers, "profile": profile, "functions": functions,
-                           "kill_date": kill_date, "working_hours": working_hours, "lost_limit": lost_limit,
-                           "taskings": taskings, "results": results, "stale": stale})
-
-        return jsonify({'agents': agents})
+        return jsonify({'agents': agent_schema.dump(agents)})
 
     @app.route('/api/agents/stale', methods=['GET'])
     def get_agents_stale():
         """
         Returns JSON describing all stale agents.
         """
+        agent_schema = AgentSchema(many=True)
+        agents = Session().query(models.Agent).filter(models.Agent.stale == True).all()
 
-        agentsRaw = execute_db_query(conn,
-                                     'SELECT id, session_id, listener, name, language, language_version, delay, jitter, external_ip, ' +
-                                     'internal_ip, username, high_integrity, process_name, process_id, hostname, os_details, session_key, nonce, checkin_time, ' +
-                                     'lastseen_time, parent, children, servers, profile, functions, kill_date, working_hours, lost_limit, taskings, results FROM agents')
-        staleAgents = []
-
-        for agent in agentsRaw:
-            [ID, session_id, listener, name, language, language_version, delay, jitter, external_ip, internal_ip,
-             username, high_integrity, process_name, process_id, hostname, os_details, session_key, nonce, checkin_time,
-             lastseen_time, parent, children, servers, profile, functions, kill_date, working_hours, lost_limit,
-             taskings, results] = agent
-
-            intervalMax = (delay + delay * jitter) + 30
-
-            # get the agent last check in time
-            agentTime = time.mktime(time.strptime(lastseen_time, "%Y-%m-%d %H:%M:%S"))
-
-            if agentTime < time.mktime(time.localtime()) - intervalMax:
-                if isinstance(session_key, bytes):
-                    session_key = session_key.decode('latin-1').encode('utf-8')
-
-                staleAgents.append(
-                    {"ID": ID, "session_id": session_id, "listener": listener, "name": name, "language": language,
-                     "language_version": language_version, "delay": delay, "jitter": jitter, "external_ip": external_ip,
-                     "internal_ip": internal_ip, "username": username, "high_integrity": high_integrity,
-                     "process_name": process_name, "process_id": process_id, "hostname": hostname,
-                     "os_details": os_details, "session_key": session_key, "nonce": nonce, "checkin_time": checkin_time,
-                     "lastseen_time": lastseen_time, "parent": parent, "children": children, "servers": servers,
-                     "profile": profile, "functions": functions, "kill_date": kill_date, "working_hours": working_hours,
-                     "lost_limit": lost_limit, "taskings": taskings, "results": results})
-
-        return jsonify({'agents': staleAgents})
+        return jsonify({'agents': agent_schema.dump(agents)})
 
     @app.route('/api/agents/stale', methods=['DELETE'])
     def remove_stale_agent():
