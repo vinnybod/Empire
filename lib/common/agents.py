@@ -55,26 +55,26 @@ handle_agent_data() is the main function that should be used by external listene
 Most methods utilize self.lock to deal with the concurreny issue of kicking off threaded listeners.
 
 """
-from __future__ import print_function
 from __future__ import absolute_import
-# -*- encoding: utf-8 -*-
-from builtins import str
-from builtins import object
-import os
+from __future__ import print_function
+
 import json
+import os
 import string
 import threading
+from builtins import object
+# -*- encoding: utf-8 -*-
+from builtins import str
+
 from pydispatch import dispatcher
-from zlib_wrapper import compress
 from zlib_wrapper import decompress
 
 # Empire imports
 from . import encryption
-from . import helpers
-from . import packets
-from . import messages
 from . import events
-from . import users
+from . import helpers
+from . import messages
+from . import packets
 
 
 class Agents(object):

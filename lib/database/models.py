@@ -28,7 +28,7 @@ class User(Base):
 class Listener(Base):
     __tablename__ = 'listeners'
     id = Column(Integer, Sequence("listener_id_seq"), primary_key=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, unique=True)
     module = Column(String(255), nullable=False)
     listener_type = Column(String(255), nullable=False)
     listener_category = Column(String(255), nullable=False)
