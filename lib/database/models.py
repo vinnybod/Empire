@@ -1,13 +1,13 @@
-from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
-from marshmallow import fields
 import pickle
 import time
 
+from marshmallow import fields
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property, object_session
 
-from .base import Base
+Base = declarative_base()
 
 
 class User(Base):
@@ -81,13 +81,94 @@ class Agent(Base):
 
         return stale
 
-    # interval_max = column_property((delay + delay * jitter) + 30)
-    # agent_time = column_property(time.mktime(time.strptime(lastseen_time, "%Y-%m-%d %H:%M:%S")))
-    # stale = column_property(agent_time < time.mktime(time.localtime()) - interval_max)
-
     def __repr__(self):
         return "<Agent(name='%s')>" % (
             self.name)
+
+
+class Config(Base):
+    __tablename__ = 'config'
+    staging_key = Column(String(255), nullable=False, primary_key=True)  # TODO Revisit max length
+    install_path = Column(String(255), nullable=False)
+    ip_whitelist = Column(String(255), nullable=False)
+    ip_blacklist = Column(String(255), nullable=False)
+    autorun_command = Column(String(255), nullable=False)
+    autorun_data = Column(String(255), nullable=False)
+    rootuser = Boolean()
+    obfuscate = Column(Integer, nullable=False)
+    obfuscate_command = Column(String(255), nullable=False)
+
+    def __repr__(self):
+        return "<Config(staging_key='%s')>" % (
+            self.staging_key)
+
+
+class Credential(Base):
+    __tablename__ = 'credentials'
+    id = Column(Integer, Sequence("credential_id_seq"), primary_key=True)
+    credtype = Column(String(255), nullable=True)
+    domain = Column(String(255), nullable=True)
+    username = Column(String(255), nullable=True)
+    password = Column(String(255), nullable=True)
+    host = Column(String(255), nullable=True)
+    os = Column(String(255), nullable=True)
+    sid = Column(String(255), nullable=True)
+    notes = Column(String(255), nullable=True)
+
+    def __repr__(self):
+        return "<Credential(id='%s')>" % (
+            self.id)
+
+
+class Tasking(Base):
+    __tablename__ = 'taskings'
+    id = Column(Integer, Sequence("tasking_id_seq"), primary_key=True)
+    agent = Column(String(255), primary_key=True),
+    data = Column(String, nullable=True)
+    user_id = Column(String(255))
+    time_stamp = Column(String(255))  # TODO Dates?
+
+    def __repr__(self):
+        return "<Tasking(id='%s')>" % (
+            self.id)
+
+
+class Result(Base):
+    __tablename__ = 'results'
+    id = Column(Integer, Sequence("result_id_seq"), primary_key=True)
+    agent = Column(String(255), primary_key=True)
+    data = Column(String, nullable=True)
+    user_id = Column(String(255))
+
+    def __repr__(self):
+        return "<Result(id='%s')>" % (
+            self.id)
+
+
+class Reporting(Base):
+    __tablename__ = 'reporting'
+    id = Column(Integer, Sequence("reporting_id_seq"), primary_key=True)
+    name = Column(String, nullable=False)
+    event_type = Column(String)
+    message = Column(String)
+    time_stamp = Column(String)
+    taskID = Column(Integer, ForeignKey('results.id'))  # Should be task_id. might be result.id
+
+    def __repr__(self):
+        return "<Reporting(id='%s')>" % (
+            self.id)
+
+
+# TODO there's probably a better way to lay this one out
+class Function(Base):
+    __tablename__ = "functions"
+    id = Column(Integer, Sequence("functions_id_seq"), primary_key=True)
+    Invoke_Empire = Column(String),
+    Invoke_Mimikatz = Column(String),
+
+    def __repr__(self):
+        return "<Function(id='%s')>" % (
+            self.id)
 
 
 def camelcase(s):
@@ -141,4 +222,3 @@ class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
         load_instance = True
 
     stale = fields.Bool()
-    # stale = auto_field(attribute="stale")

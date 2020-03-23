@@ -218,6 +218,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
     @app.teardown_request
     def remove_session(ex):
+        Session().commit()
         Session.remove()
 
     @app.errorhandler(Exception)

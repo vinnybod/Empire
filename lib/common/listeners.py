@@ -476,6 +476,8 @@ class Listeners(object):
     def get_listener_id(self, name):
         """
         Resolve a name to listener ID.
+        TODO VR, this is called by the api after starting a listener to see if it was created.
+          Should it hit self.activeListeners?
         """
         results = Session().query(models.Listener).filter(or_(
             models.Listener.name == name,
