@@ -123,7 +123,7 @@ class Credential(Base):
 class Tasking(Base):
     __tablename__ = 'taskings'
     id = Column(Integer, Sequence("tasking_id_seq"), primary_key=True)
-    agent = Column(String(255), primary_key=True),
+    agent = Column(String(255), primary_key=True)
     data = Column(String, nullable=True)
     user_id = Column(String(255))
     time_stamp = Column(String(255))  # TODO Dates?

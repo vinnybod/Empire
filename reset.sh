@@ -1,25 +1,12 @@
 #!/bin/bash
 
-if [[ $EUID -ne 0 ]]; then
-   echo " [!]This script must be run as root" 1>&2
-   exit 1
-fi
-
-IFS='/' read -a array <<< pwd
-
-if [[ "$(pwd)" != *setup ]]
-then
-	cd ./setup
-fi
-
 # reset the database
-if [ -e ../data/empire.db ]
+if [ -e data/empire.db ]
 then
-	rm ../data/empire.db
+	rm data/empire.db
 fi
 
-python ./setup_database.py
-cd ..
+pipenv run python ./setup_database.py
 
 # remove the debug file if it exists
 if [ -e empire.debug ]
@@ -37,5 +24,5 @@ fi
 if [ -f /.dockerenv ]; then
     echo " [*] Empire reset complete returning back to Docker"
 else
-    ./empire
+    pipenv run ./empire
 fi
