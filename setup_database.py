@@ -8,11 +8,10 @@ import random
 import string
 from builtins import input
 
-# if __name__ == '__main__':
-#     from lib.database import models
-#     from lib.database.base import Session
-# 
-#     
+import bcrypt
+
+from lib.database import models
+from lib.database.base import Session
 
 ###################################################
 #
@@ -53,6 +52,25 @@ IP_WHITELIST = ""
 IP_BLACKLIST = ""
 
 OBFUSCATE = 0
+
 OBFUSCATE_COMMAND = r'Token\All\1'
+
+API_USERNAME = "empireadmin"
+
+API_PASSWORD = bcrypt.hashpw(b"password123", bcrypt.gensalt())
+
+config = Session().query(models.Config).first()
+config.staging_key = STAGING_KEY
+config.install_path = INSTALL_PATH
+config.ip_blacklist = IP_BLACKLIST
+config.ip_whitelist = IP_WHITELIST
+config.obfuscate = OBFUSCATE
+config.obfuscate_command = OBFUSCATE_COMMAND
+
+user = Session.query(models.User).first()
+user.username = API_USERNAME
+user.password = API_PASSWORD
+
+Session.commit()
 
 print("\n [*] Database setup completed!\n")

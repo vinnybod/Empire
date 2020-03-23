@@ -10,6 +10,9 @@ Session = scoped_session(sessionmaker(bind=engine))
 
 Base.metadata.create_all(engine)
 
+# When Empire starts up for the first time, it will create the database and create
+# these default records. If ./setup_database.py is run, this same process will happen,
+# and then it will overwrite the default records with what is defined in that file.
 if len(Session().query(models.User).all()) == 0:
     Session().add(get_default_user())
     Session().commit()

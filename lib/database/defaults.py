@@ -1,3 +1,4 @@
+import os
 import random
 import string
 
@@ -14,8 +15,11 @@ def get_default_user():
 
 
 def get_default_config():
-    return models.Config(staging_key="",
-                         install_path="",
+    # The install path ends up being a different directory. Is this field even needed?
+    # If so the way it gets the directory needs to be changed.
+    punctuation = '!#%&()*+,-./:;<=>?@[]^_{|}~'
+    return models.Config(staging_key=''.join(random.sample(string.ascii_letters + string.digits + punctuation, 32)),
+                         install_path=os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/",
                          ip_whitelist="",
                          ip_blacklist="",
                          autorun_command="",
