@@ -126,9 +126,6 @@ install_bomutils
 
 install_powershell
 
-# set up the database schema
-python ./setup_database.py
-
 # generate a cert
 ./cert.sh
 

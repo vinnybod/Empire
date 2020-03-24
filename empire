@@ -20,6 +20,8 @@ from time import sleep
 from flask import Flask, request, jsonify, make_response, abort, url_for, g
 
 # Empire imports
+from sqlalchemy import or_
+
 from lib.api.input import DisableUserInputSchema, CreateUserInputSchema, LoginInputSchema
 from lib.common import empire, helpers
 from lib.common.users import Users
@@ -762,8 +764,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
         for agent in agents:
             Session().delete(agent)
-
-        # todo do we need to commit?
+        Session().commit()
 
         return jsonify({'success': True})
 
@@ -775,21 +776,19 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         WARNING: doesn't kill the agent first! Ensure the agent is dead.
         """
         if agent_name.lower() == "all":
-            # enumerate all target agent sessionIDs
-            agentNameIDs = execute_db_query(conn,
-                                            "SELECT name,session_id FROM agents WHERE name like '%' OR session_id like '%'")
+            agents = Session().query(models.Agent).all()
         else:
-            agentNameIDs = execute_db_query(conn,
-                                            'SELECT name,session_id FROM agents WHERE name like ? OR session_id like ?',
-                                            [agent_name, agent_name])
+            agents = Session().query(models.Agent).filter(or_(
+                models.Agent.name == agent_name,
+                models.Agent.session_id == agent_name
+            )).all()
 
-        if not agentNameIDs or len(agentNameIDs) == 0:
-            return make_response(jsonify({'error': 'agent name %s not found' % (agent_name)}), 404)
+        if not agents or len(agents) == 0:
+            return make_response(jsonify({'error': 'agent name %s not found' % agent_name}), 404)
 
-        for agentNameID in agentNameIDs:
-            (agentName, agentSessionID) = agentNameID
-
-            execute_db_query(conn, "DELETE FROM agents WHERE session_id LIKE ?", [agentSessionID])
+        for agent in agents:
+            Session.delete(agent)
+        Session().commit()
 
         return jsonify({'success': True})
 
