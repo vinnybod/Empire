@@ -24,7 +24,9 @@ from flask.views import MethodView
 from flask_smorest import Api, Blueprint
 from sqlalchemy import or_
 
+from lib.api.config import FlaskConfig
 from lib.api.input import DisableUserInputSchema, CreateUserInputSchema, LoginInputSchema
+from lib.api.users import user_blp
 from lib.common import empire, helpers
 from lib.common.users import Users
 from lib.database import models
@@ -168,54 +170,11 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     password    -   optional password to use for the API, otherwise pulls from the empire.db config
     port        -   port to start the API on, defaults to 1337 ;)
     """
-
-    class FlaskConfig:
-        OPENAPI_VERSION = "3.0.2"
-        OPENAPI_URL_PREFIX = '/doc'
-        OPENAPI_REDOC_PATH = '/redoc'
-        OPENAPI_SWAGGER_UI_PATH = '/swagger'
-        # The following is equivalent to OPENAPI_SWAGGER_UI_VERSION = '3.19.5'
-        OPENAPI_SWAGGER_UI_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.19.5/'
-        OPENAPI_JSON_PATH = "api-spec.json"
-        OPENAPI_REDOC_URL = "https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"
-
     app = Flask(__name__)
     app.config.from_object(FlaskConfig)
+
     api = Api(app)
-    blp = Blueprint(
-        'users', 'users', url_prefix='/users',
-        description='Operations on users'
-    )
-
-    @blp.route('/')
-    class Users(MethodView):
-
-        @blp.arguments
-        @blp.response(UserSchema(many=True))
-        def get(self, args):
-            """List pets"""
-            return Session().query(models.User).all()
-
-        @blp.arguments(UserSchema)
-        @blp.response(UserSchema, code=201)
-        def post(self, new_data):
-            """Add a new pet"""
-            item = Session().query(models.User).first()
-            return item
-
-    @blp.route('/<user_id>')
-    class UsersById(MethodView):
-
-        @blp.response(UserSchema)
-        def get(self, user_id):
-            """Get pet by ID"""
-            try:
-                item = Session().query(models.User).filter(models.User.id == user_id).first()
-            except Exception:
-                abort(404, message='Item not found.')
-            return item
-
-    api.register_blueprint(blp)
+    api.register_blueprint(user_blp)
 
     conn = database_connect()
 
@@ -1305,38 +1264,38 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         shutdown_server()
         return jsonify({'success': True})
 
-    @app.route('/api/users', methods=['GET'])
-    def get_users():
-        """
-        Returns JSON of the users from the backend database.
-        """
-        user_schema = UserSchema(many=True, exclude=("password", "api_token"))
-        users = Session().query(models.User).all()
-
-        return jsonify({'users': user_schema.dump(users)})
-
-    @app.route('/api/users/me', methods=['GET'])
-    def get_user_me():
-        """
-        Returns the current user.
-        """
-        user_schema = UserSchema(exclude=("password",))
-        return jsonify(user_schema.dump(g.user))
-
-    @app.route('/api/users', methods=['POST'])
-    def create_user():
-        create_user_schema = CreateUserInputSchema()
-        errors = create_user_schema.validate(request.json)
-
-        if errors:
-            return jsonify({'errors': errors}, 400)
-
-        # Check if user is an admin
-        if not Users.is_admin(g.user.id):
-            abort(403)
-
-        status = Users.add_new_user(request.json['username'], request.json['password'])
-        return jsonify({'success': status})
+    # @app.route('/api/users', methods=['GET'])
+    # def get_users():
+    #     """
+    #     Returns JSON of the users from the backend database.
+    #     """
+    #     user_schema = UserSchema(many=True, exclude=("password", "api_token"))
+    #     users = Session().query(models.User).all()
+    #
+    #     return jsonify({'users': user_schema.dump(users)})
+    #
+    # @app.route('/api/users/me', methods=['GET'])
+    # def get_user_me():
+    #     """
+    #     Returns the current user.
+    #     """
+    #     user_schema = UserSchema(exclude=("password",))
+    #     return jsonify(user_schema.dump(g.user))
+    #
+    # @app.route('/api/users', methods=['POST'])
+    # def create_user():
+    #     create_user_schema = CreateUserInputSchema()
+    #     errors = create_user_schema.validate(request.json)
+    #
+    #     if errors:
+    #         return jsonify({'errors': errors}, 400)
+    #
+    #     # Check if user is an admin
+    #     if not Users.is_admin(g.user.id):
+    #         abort(403)
+    #
+    #     status = Users.add_new_user(request.json['username'], request.json['password'])
+    #     return jsonify({'success': status})
 
     @app.route('/api/users/<int:uid>/disable', methods=['PUT'])
     def disable_user(uid):
