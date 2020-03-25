@@ -222,3 +222,11 @@ class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
         load_instance = True
 
     stale = fields.Bool()
+
+
+class ConfigSchema(CamelCaseSqlAlchemyAutoSchema):
+    class Meta:
+        model = Agent
+        include_relationships = True
+        load_instance = True
+

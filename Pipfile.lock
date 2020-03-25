@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "eebdf803ca90ac87a84816f4f780bd2455d2b8ddec4a46624a350a99549a5942"
+            "sha256": "2f7479a79b6f88421834d053f417e3acb8ec5027ba019052389a648d174670cf"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -22,6 +22,13 @@
                 "sha256:c623e5f3408ca61d4016f23a681b9adb100802ca3e3da5e718915a9e4052cebe"
             ],
             "version": "==0.17"
+        },
+        "apispec": {
+            "hashes": [
+                "sha256:419d0564b899e182c2af50483ea074db8cb05fee60838be58bb4542095d5c08d",
+                "sha256:9bf4e51d56c9067c60668b78210ae213894f060f85593dc2ad8805eb7d875a2a"
+            ],
+            "version": "==3.3.0"
         },
         "astroid": {
             "hashes": [
@@ -151,6 +158,14 @@
             ],
             "index": "pypi",
             "version": "==1.1.1"
+        },
+        "flask-smorest": {
+            "hashes": [
+                "sha256:13dcb87eaeaf552c5b498a22b6536d67c2b52bdbd8cb1b7e73e5eb352c2c2697",
+                "sha256:5f6742dcfb622e79ca6bbfa9f2515846334d7f17edff5dac875aa8d55a90b70b"
+            ],
+            "index": "pypi",
+            "version": "==0.21.0"
         },
         "future": {
             "hashes": [
@@ -454,6 +469,13 @@
             ],
             "index": "pypi",
             "version": "==1.25.8"
+        },
+        "webargs": {
+            "hashes": [
+                "sha256:d66a056b3a40c5a3774a650fd349db5970cd91fa8f04ac50d00582c949b45b26",
+                "sha256:dfe01cd3711cee9a3651bfd5ca67770ace4a6f35f3cae583aa8400bbf7706bb4"
+            ],
+            "version": "==6.0.0"
         },
         "werkzeug": {
             "hashes": [

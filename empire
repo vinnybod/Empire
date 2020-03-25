@@ -20,6 +20,8 @@ from time import sleep
 from flask import Flask, request, jsonify, make_response, abort, url_for, g
 
 # Empire imports
+from flask.views import MethodView
+from flask_smorest import Api, Blueprint
 from sqlalchemy import or_
 
 from lib.api.input import DisableUserInputSchema, CreateUserInputSchema, LoginInputSchema
@@ -27,7 +29,7 @@ from lib.common import empire, helpers
 from lib.common.users import Users
 from lib.database import models
 from lib.database.base import Session
-from lib.database.models import UserSchema, ListenerSchema, AgentSchema
+from lib.database.models import UserSchema, ListenerSchema, AgentSchema, ConfigSchema
 
 if sys.version[0] == '2':
     print(helpers.color("[!] Please use Python 3"))
@@ -167,7 +169,53 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     port        -   port to start the API on, defaults to 1337 ;)
     """
 
+    class FlaskConfig:
+        OPENAPI_VERSION = "3.0.2"
+        OPENAPI_URL_PREFIX = '/doc'
+        OPENAPI_REDOC_PATH = '/redoc'
+        OPENAPI_SWAGGER_UI_PATH = '/swagger'
+        # The following is equivalent to OPENAPI_SWAGGER_UI_VERSION = '3.19.5'
+        OPENAPI_SWAGGER_UI_URL = 'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/3.19.5/'
+        OPENAPI_JSON_PATH = "api-spec.json"
+        OPENAPI_REDOC_URL = "https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"
+
     app = Flask(__name__)
+    app.config.from_object(FlaskConfig)
+    api = Api(app)
+    blp = Blueprint(
+        'users', 'users', url_prefix='/users',
+        description='Operations on users'
+    )
+
+    @blp.route('/')
+    class Users(MethodView):
+
+        @blp.arguments
+        @blp.response(UserSchema(many=True))
+        def get(self, args):
+            """List pets"""
+            return Session().query(models.User).all()
+
+        @blp.arguments(UserSchema)
+        @blp.response(UserSchema, code=201)
+        def post(self, new_data):
+            """Add a new pet"""
+            item = Session().query(models.User).first()
+            return item
+
+    @blp.route('/<user_id>')
+    class UsersById(MethodView):
+
+        @blp.response(UserSchema)
+        def get(self, user_id):
+            """Get pet by ID"""
+            try:
+                item = Session().query(models.User).filter(models.User.id == user_id).first()
+            except Exception:
+                abort(404, message='Item not found.')
+            return item
+
+    api.register_blueprint(blp)
 
     conn = database_connect()
 
@@ -203,7 +251,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         Before every request, check if a valid token is passed along with the request.
         """
         try:
-            if request.path != '/api/admin/login':
+            if request.path != '/api/admin/login' and not request.path.startswith('/doc'):
                 token = request.args.get('token')
                 user = Users.get_user_from_token(token)
                 if user:
@@ -274,17 +322,10 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         Returns JSON of the current Empire config.
         """
-        configRaw = execute_db_query(conn,
-                                     'SELECT staging_key, install_path, ip_whitelist, ip_blacklist, autorun_command, autorun_data, rootuser, api_username, api_password, api_current_token FROM config')
+        config_schema = ConfigSchema()
+        config = Session().query(models.Config).first()
 
-        [staging_key, install_path, ip_whitelist, ip_blacklist, autorun_command, autorun_data, rootuser, api_username,
-         api_password, api_current_token] = configRaw[0]
-        config = [{"api_password": api_password, "api_username": api_username, "autorun_command": autorun_command,
-                   "autorun_data": autorun_data, "current_api_token": api_current_token, "install_path": install_path,
-                   "ip_blacklist": ip_blacklist, "ip_whitelist": ip_whitelist, "staging_key": staging_key,
-                   "version": empire.VERSION}]
-
-        return jsonify({'config': config})
+        return jsonify(config_schema.dump(config))
 
     @app.route('/api/stagers', methods=['GET'])
     def get_stagers():
@@ -331,6 +372,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
             StagerName      -   the stager name to generate
             Listener        -   the Listener name to use for the stager
         """
+        #TODO dto
         if not request.json or not 'StagerName' in request.json or not 'Listener' in request.json:
             abort(400)
 
