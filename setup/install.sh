@@ -84,7 +84,6 @@ function install_xar() {
 	# xar-1.6.1 has an incompatability with libssl 1.1.x that is patched here
 	wget https://github.com/BC-SECURITY/xar/archive/xar-1.6.1-patch.tar.gz
 	tar -xvf xar-1.6.1-patch.tar.gz && mv xar-xar-1.6.1-patch/xar/ xar-1.6.1/
-	fi
 	(cd xar-1.6.1 && ./autogen.sh)
 	(cd xar-1.6.1 && ./configure)
 	(cd xar-1.6.1 && make)

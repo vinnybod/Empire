@@ -34,15 +34,6 @@ class PickleBlob(fields.Field):
         return value.dumps(value)
 
 
-class ListenerSchema(CamelCaseSqlAlchemyAutoSchema):
-    class Meta:
-        model = Listener
-        include_relationships = True
-        load_instance = True
-
-    options = PickleBlob()
-
-
 class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
     class Meta:
         model = Agent

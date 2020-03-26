@@ -23,6 +23,7 @@ from flask_smorest import Api
 from sqlalchemy import or_
 
 from lib.api.config import FlaskConfig
+from lib.api.listeners.endpoints import lis_blp
 from lib.api.meta.endpoints import meta_blp
 from lib.api.users.endpoints import user_blp
 from lib.api.users.schemas import LoginInputSchema
@@ -30,7 +31,7 @@ from lib.common import empire, helpers
 from lib.common.users import Users
 from lib.database import models
 from lib.database.base import Session
-from lib.api.schemas import ListenerSchema, AgentSchema
+from lib.api.schemas import AgentSchema
 
 if sys.version[0] == '2':
     print(helpers.color("[!] Please use Python 3"))
@@ -169,6 +170,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     api = Api(app)
     api.register_blueprint(user_blp)
     api.register_blueprint(meta_blp)
+    api.register_blueprint(lis_blp)
 
     conn = database_connect()
 
@@ -582,31 +584,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
                 modules.append(moduleInfo)
 
         return jsonify({'modules': modules})
-
-    @app.route('/api/listeners', methods=['GET'])
-    def get_listeners():
-        """
-        Returns JSON describing all currently registered listeners.
-        """
-        # Todo run query in listeners.py?
-        listener_schema = ListenerSchema(many=True)
-        listeners = Session().query(models.Listener).all()
-
-        return jsonify({'listeners': listener_schema.dump(listeners)})
-
-    @app.route('/api/listeners/<string:listener_name>', methods=['GET'])
-    def get_listener_name(listener_name):
-        """
-        Returns JSON describing the listener specified by listener_name.
-        """
-        # This changed from an array to a single item
-        listener_schema = ListenerSchema()
-        listener = Session().query(models.Listener).filter(models.Listener.name == listener_name).first()
-
-        if listener:
-            return jsonify(listener_schema.dump(listener))
-        else:
-            return make_response(jsonify({'error': 'listener name %s not found' % (listener_name)}), 404)
 
     @app.route('/api/listeners/<string:listener_name>', methods=['DELETE'])
     def kill_listener(listener_name):
