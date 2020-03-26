@@ -23,13 +23,14 @@ from flask_smorest import Api
 from sqlalchemy import or_
 
 from lib.api.config import FlaskConfig
+from lib.api.meta.endpoints import meta_blp
 from lib.api.users.endpoints import user_blp
 from lib.api.users.schemas import LoginInputSchema
 from lib.common import empire, helpers
 from lib.common.users import Users
 from lib.database import models
 from lib.database.base import Session
-from lib.api.schemas import ListenerSchema, AgentSchema, ConfigSchema
+from lib.api.schemas import ListenerSchema, AgentSchema
 
 if sys.version[0] == '2':
     print(helpers.color("[!] Please use Python 3"))
@@ -167,6 +168,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
     api = Api(app)
     api.register_blueprint(user_blp)
+    api.register_blueprint(meta_blp)
 
     conn = database_connect()
 
@@ -229,54 +231,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         code = error.code if hasattr(error, 'code') else '500'
         return make_response(jsonify({'error': repr(error)}), code)
-
-    @app.errorhandler(404)
-    def not_found(error):
-        """
-        404/not found handler.
-        """
-        return make_response(jsonify({'error': 'Not found'}), 404)
-
-    @app.route('/api/version', methods=['GET'])
-    def get_version():
-        """
-        Returns the current Empire version.
-        """
-        return jsonify({'version': empire.VERSION})
-
-    @app.route('/api/map', methods=['GET'])
-    def list_routes():
-        """
-        List all of the current registered API routes.
-        """
-        import urllib.request as urllib
-        output = []
-        for rule in app.url_map.iter_rules():
-
-            options = {}
-            for arg in rule.arguments:
-                options[arg] = "[{0}]".format(arg)
-
-            methods = ','.join(rule.methods)
-            url = url_for(rule.endpoint, **options)
-            line = urllib.unquote(
-                "[ { '" + rule.endpoint + "': [ { 'methods': '" + methods + "', 'url': '" + url + "' } ] } ]")
-            output.append(line)
-
-        res = ''
-        for line in sorted(output):
-            res = res + '\r\n' + line
-        return jsonify({'Routes': res})
-
-    @app.route('/api/config', methods=['GET'])
-    def get_config():
-        """
-        Returns JSON of the current Empire config.
-        """
-        config_schema = ConfigSchema()
-        config = Session().query(models.Config).first()
-
-        return jsonify(config_schema.dump(config))
 
     @app.route('/api/stagers', methods=['GET'])
     def get_stagers():
