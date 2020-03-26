@@ -10,7 +10,7 @@ class UserSchema(CamelCaseSqlAlchemyAutoSchema):
         model = User
         include_relationships = True
         load_instance = True
-
+        exclude = ('password',)
 
 class DisableUserInputSchema(Schema):
     disable = fields.Bool(required=True)
