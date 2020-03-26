@@ -26,19 +26,21 @@ class Users:
         """
         Add new user to cache
         """
-        Session().add(models.User(username=user_name,
-                                  password=Users.get_hashed_password(password),
-                                  last_logon_time=helpers.get_datetime(),
-                                  enabled=True,
-                                  admin=False))
+        user = models.User(username=user_name,
+                           password=Users.get_hashed_password(password),
+                           last_logon_time=helpers.get_datetime(),
+                           enabled=True,
+                           admin=False)
+        Session().add()
         Session().commit()
+
         signal = json.dumps({
             'print': True,
             'message': "Added {} to Users".format(user_name)
         })
         dispatcher.send(signal, sender="Users")
 
-        return True
+        return user
 
     @staticmethod
     def disable_user(uid, disable):

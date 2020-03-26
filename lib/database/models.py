@@ -1,8 +1,5 @@
-import pickle
 import time
 
-from marshmallow import fields
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -169,64 +166,3 @@ class Function(Base):
     def __repr__(self):
         return "<Function(id='%s')>" % (
             self.id)
-
-
-def camelcase(s):
-    parts = iter(s.split("_"))
-    return next(parts) + "".join(i.title() for i in parts)
-
-
-class CamelCaseSqlAlchemyAutoSchema(SQLAlchemyAutoSchema):
-    """Schema that uses camel-case for its external representation
-    and snake-case for its internal representation.
-    """
-
-    def on_bind_field(self, field_name, field_obj):
-        field_obj.data_key = camelcase(field_obj.data_key or field_name)
-
-
-class PickleBlob(fields.Field):
-    """Field that serializes to a title case string and deserializes
-    to a lower case string.
-    """
-
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return ""
-        return pickle.loads(value)
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        return value.dumps(value)
-
-
-class UserSchema(CamelCaseSqlAlchemyAutoSchema):
-    class Meta:
-        model = User
-        include_relationships = True
-        load_instance = True
-
-
-class ListenerSchema(CamelCaseSqlAlchemyAutoSchema):
-    class Meta:
-        model = Listener
-        include_relationships = True
-        load_instance = True
-
-    options = PickleBlob()
-
-
-class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
-    class Meta:
-        model = Agent
-        include_relationships = True
-        load_instance = True
-
-    stale = fields.Bool()
-
-
-class ConfigSchema(CamelCaseSqlAlchemyAutoSchema):
-    class Meta:
-        model = Agent
-        include_relationships = True
-        load_instance = True
-

@@ -1,5 +1,15 @@
 from marshmallow import Schema, fields
-from marshmallow.validate import Length, Range
+from marshmallow.validate import Length
+
+from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema
+from lib.database.models import User
+
+
+class UserSchema(CamelCaseSqlAlchemyAutoSchema):
+    class Meta:
+        model = User
+        include_relationships = True
+        load_instance = True
 
 
 class DisableUserInputSchema(Schema):

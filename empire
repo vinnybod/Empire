@@ -18,20 +18,18 @@ import time
 from time import sleep
 
 from flask import Flask, request, jsonify, make_response, abort, url_for, g
-
 # Empire imports
-from flask.views import MethodView
-from flask_smorest import Api, Blueprint
+from flask_smorest import Api
 from sqlalchemy import or_
 
 from lib.api.config import FlaskConfig
-from lib.api.input import DisableUserInputSchema, CreateUserInputSchema, LoginInputSchema
-from lib.api.users import user_blp
+from lib.api.users.endpoints import user_blp
+from lib.api.users.schemas import LoginInputSchema
 from lib.common import empire, helpers
 from lib.common.users import Users
 from lib.database import models
 from lib.database.base import Session
-from lib.database.models import UserSchema, ListenerSchema, AgentSchema, ConfigSchema
+from lib.api.schemas import ListenerSchema, AgentSchema, ConfigSchema
 
 if sys.version[0] == '2':
     print(helpers.color("[!] Please use Python 3"))
@@ -151,12 +149,6 @@ def execute_db_query(conn, query, args=None):
 #    POST     http://localhost:1337/api/admin/logout                logout of current user account
 #    GET      http://localhost:1337/api/admin/restart               restart the RESTful API
 #    GET      http://localhost:1337/api/admin/shutdown              shutdown the RESTful API
-#
-#    GET      http://localhost:1337/api/users                       return all users from database
-#    GET      http://localhost:1337/api/users/me                    return the user for the given token
-#    POST     http://localhost:1337/api/users                       add a new user
-#    PUT      http://localhost:1337/api/users/Y/disable             disable/enable user Y
-#    PUT      http://localhost:1337/api/users/Y/updatepassword      update password for user Y
 #
 ####################################################################
 
@@ -331,7 +323,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
             StagerName      -   the stager name to generate
             Listener        -   the Listener name to use for the stager
         """
-        #TODO dto
+        # TODO dto
         if not request.json or not 'StagerName' in request.json or not 'Listener' in request.json:
             abort(400)
 
@@ -1263,74 +1255,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         shutdown_server()
         return jsonify({'success': True})
-
-    # @app.route('/api/users', methods=['GET'])
-    # def get_users():
-    #     """
-    #     Returns JSON of the users from the backend database.
-    #     """
-    #     user_schema = UserSchema(many=True, exclude=("password", "api_token"))
-    #     users = Session().query(models.User).all()
-    #
-    #     return jsonify({'users': user_schema.dump(users)})
-    #
-    # @app.route('/api/users/me', methods=['GET'])
-    # def get_user_me():
-    #     """
-    #     Returns the current user.
-    #     """
-    #     user_schema = UserSchema(exclude=("password",))
-    #     return jsonify(user_schema.dump(g.user))
-    #
-    # @app.route('/api/users', methods=['POST'])
-    # def create_user():
-    #     create_user_schema = CreateUserInputSchema()
-    #     errors = create_user_schema.validate(request.json)
-    #
-    #     if errors:
-    #         return jsonify({'errors': errors}, 400)
-    #
-    #     # Check if user is an admin
-    #     if not Users.is_admin(g.user.id):
-    #         abort(403)
-    #
-    #     status = Users.add_new_user(request.json['username'], request.json['password'])
-    #     return jsonify({'success': status})
-
-    @app.route('/api/users/<int:uid>/disable', methods=['PUT'])
-    def disable_user(uid):
-        disable_user_schema = DisableUserInputSchema()
-        errors = disable_user_schema.validate(request.json)
-
-        if errors:
-            return jsonify({'errors': errors}, 400)
-
-        # Don't disable yourself
-        if uid == g.user.id:
-            return jsonify({'errors': ['Cannot disable yourself']}, 400)
-
-        # User performing the action should be an admin.
-        # User being updated should not be an admin.
-        if not Users.is_admin(g.user.id) or Users.is_admin(uid):
-            abort(403)
-
-        status = Users.disable_user(uid, request.json['disable'])
-        return jsonify({'success': status})
-
-    @app.route('/api/users/<int:uid>/updatepassword', methods=['PUT'])
-    def update_user_password(uid):
-        disable_user_schema = DisableUserInputSchema()
-        errors = disable_user_schema.validate(request.json)
-
-        if errors:
-            return jsonify({'errors': errors}, 400)
-
-        # Must be an admin or updating self.
-        if not (Users.is_admin(g.user.id) or uid == g.user.id):
-            abort(403)
-
-        status = Users.update_password(uid, request.json['password'])
-        return jsonify({'success': status})
 
     if not os.path.exists('./data/empire-chain.pem'):
         print("[!] Error: cannot find certificate ./data/empire-chain.pem")
