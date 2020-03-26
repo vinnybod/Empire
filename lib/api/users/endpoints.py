@@ -1,5 +1,4 @@
 from flask import g
-from flask import jsonify
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from webargs.flaskparser import abort
@@ -15,7 +14,7 @@ user_blp = Blueprint(
     description='Operations on users'
 )
 
-# Todo standardized exception handling
+
 @user_blp.route('/')
 class UsersView(MethodView):
 
@@ -44,7 +43,6 @@ class UsersById(MethodView):
         """Get user by id"""
         user = Session().query(models.User).filter(models.User.id == user_id).first()
 
-        # todo here is where i've seen it deferred to a dao and catches a NotFoundException from the dao
         if user is None:
             abort(404, message='User not found.')
 
@@ -67,21 +65,14 @@ class UsersDisable(MethodView):
 
     @requires_admin
     @user_blp.arguments(DisableUserInputSchema)
-    @user_blp.response(UserSchema, code=200)
+    @user_blp.response(code=200)
     def put(self, data, user_id):
-        # Don't disable yourself
         if user_id == g.user.id:
-            # todo abort?
-            return jsonify({'errors': ['Cannot disable yourself']}, 400)
-
-        # User being updated should not be an admin.
+            abort(422, message="Cannot disable yourself.")
         if Users.is_admin(user_id):
-            abort(403)
+            abort(422, message="Cannot disable an admin.")
 
-        status = Users.disable_user(user_id, data['disable'])
-
-        # todo return object itself? 201? 204?
-        return jsonify({'success': status})
+        Users.disable_user(user_id, data['disable'])
 
 
 @user_blp.route('/<user_id>/password')
@@ -92,9 +83,6 @@ class UsersPassword(MethodView):
     def put(self, data, user_id):
         # Must be an admin or updating self.
         if not (Users.is_admin(g.user.id) or user_id == g.user.id):
-            abort(403)
+            abort(403, message="Not authorized to update this user.")
 
-        status = Users.update_password(user_id, data['password'])
-
-        # return 201 ? 204? 200 with no body?
-        return jsonify({'success': status})
+        Users.update_password(user_id, data['password'])

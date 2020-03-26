@@ -47,18 +47,9 @@ class Users:
         """
         Disable user
         """
-        if not Users.user_exists(uid):
-            signal = json.dumps({
-                'print': True,
-                'message': "Cannot disable user that does not exist"
-            })
-            message = False
-        elif Users.is_admin(uid):
-            signal = json.dumps({
-                'print': True,
-                'message': "Cannot disable admin account"
-            })
-            message = False
+        # Cannot disable an admin or nonexistent user
+        if not Users.user_exists(uid) or Users.is_admin(uid):
+            return False
         else:
             user = Session().query(models.User).where(models.User.id == uid).first()
             user.enabled = not disable
@@ -68,10 +59,9 @@ class Users:
                 'print': True,
                 'message': 'User {}'.format('disabled' if disable else 'enabled')
             })
-            message = True
 
         dispatcher.send(signal, sender="Users")
-        return message
+        return True
 
     @staticmethod
     def user_login(user_name, password):
