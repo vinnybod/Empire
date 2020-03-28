@@ -3,7 +3,8 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from webargs.flaskparser import abort
 
-from lib.api.listeners.schemas import ListenerSchema, ListenerTypeSchema, ListenersSchema, ListenerOptionsSchema
+from lib.api.listeners.schemas import ListenerSchema, ListenerTypeSchema, ListenersSchema, ListenerOptionsSchema, \
+    ListenerStartRequestSchema
 from lib.database import models
 from lib.database.base import Session
 
@@ -14,7 +15,7 @@ lis_blp = Blueprint(
 
 
 @lis_blp.route('/')
-class ConfigView(MethodView):
+class ListenerView(MethodView):
 
     @lis_blp.response(ListenersSchema, code=200)
     def get(self):
@@ -85,8 +86,7 @@ class ListenerType(MethodView):
 
 class ListenerStart(MethodView):
 
-    # TODO arguments
-    @lis_blp.arguments(ListenerSchema)
+    @lis_blp.arguments(ListenerStartRequestSchema)
     @lis_blp.response(ListenerSchema, code=201)
     def get(self, data, listener_type):
         """

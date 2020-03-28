@@ -1,9 +1,9 @@
 import pickle
 
-from marshmallow import fields
+from marshmallow import fields, Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
-from lib.database.models import User, Listener, Agent, Config
+from lib.database.models import Agent
 
 
 def camelcase(s):
@@ -15,6 +15,12 @@ class CamelCaseSqlAlchemyAutoSchema(SQLAlchemyAutoSchema):
     """Schema that uses camel-case for its external representation
     and snake-case for its internal representation.
     """
+
+    def on_bind_field(self, field_name, field_obj):
+        field_obj.data_key = camelcase(field_obj.data_key or field_name)
+
+
+class CamelCaseSchema(Schema):
 
     def on_bind_field(self, field_name, field_obj):
         field_obj.data_key = camelcase(field_obj.data_key or field_name)

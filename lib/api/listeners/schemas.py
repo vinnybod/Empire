@@ -29,3 +29,7 @@ class ListenerOptionSchema(Schema):
 
 class ListenerOptionsSchema(Schema):
     listener_options = fields.Dict(keys=fields.Str(), values=fields.Nested(ListenerOptionSchema))
+
+
+class ListenerStartRequestSchema(Schema):
+    options = fields.Dict(keys=fields.Str(), values=fields.Str())

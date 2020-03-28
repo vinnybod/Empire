@@ -1,10 +1,13 @@
+import time
+
 from flask import g
 from flask.views import MethodView
 from flask_smorest import Blueprint
 from webargs.flaskparser import abort
 
 from lib.api.handlers import requires_admin
-from lib.api.users.schemas import UserSchema, CreateUserInputSchema, DisableUserInputSchema, UpdatePasswordInputSchema
+from lib.api.users.schemas import UserSchema, CreateUserInputSchema, DisableUserInputSchema, UpdatePasswordInputSchema, \
+    LoginInputSchema, LoginResponseSchema
 from lib.common.users import Users
 from lib.database import models
 from lib.database.base import Session
@@ -86,3 +89,34 @@ class UsersPassword(MethodView):
             abort(403, message="Not authorized to update this user.")
 
         Users.update_password(user_id, data['password'])
+
+
+@user_blp.route('/login')
+class UsersLogin(MethodView):
+
+    @user_blp.arguments(LoginInputSchema)
+    @user_blp.response(LoginResponseSchema)
+    def post(self, data):
+        """
+        Takes a supplied username and password and returns the current API token
+        if authentication is accepted.
+        """
+        # try to prevent some basic bruting
+        time.sleep(2)
+        token = Users.user_login(data['username'], data['password'])
+
+        if token:
+            return {'token': token}
+        else:
+            return abort(401, message="Incorrect username or password")
+
+
+@user_blp.route('/logout')
+class UserLogout(MethodView):
+
+    @user_blp.response(code="201")
+    def post(self):
+        """
+        Logs out current user
+        """
+        Users.user_logout(g.user.id)

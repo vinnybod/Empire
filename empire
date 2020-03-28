@@ -25,6 +25,7 @@ from sqlalchemy import or_
 from lib.api.config import FlaskConfig
 from lib.api.listeners.endpoints import lis_blp
 from lib.api.meta.endpoints import meta_blp
+from lib.api.stagers.endpoints import sta_blp
 from lib.api.users.endpoints import user_blp
 from lib.api.users.schemas import LoginInputSchema
 from lib.common import empire, helpers
@@ -100,14 +101,6 @@ def execute_db_query(conn, query, args=None):
 #
 #    Verb     URI                                                   Action
 #    ----     ---                                                   ------
-#    GET      http://localhost:1337/api/version                     return the current Empire version
-#    GET      http://localhost:1337/api/map                         return list of all API routes
-#    GET      http://localhost:1337/api/config                      return the current default config
-#
-#    GET      http://localhost:1337/api/stagers                     return all current stagers
-#    GET      http://localhost:1337/api/stagers/X                   return the stager with name X
-#    POST     http://localhost:1337/api/stagers                     generate a stager given supplied options (need to implement)
-#
 #    GET      http://localhost:1337/api/modules                     return all current modules
 #    GET      http://localhost:1337/api/modules/<name>              return the module with the specified name
 #    POST     http://localhost:1337/api/modules/<name>              execute the given module with the specified options
@@ -116,13 +109,6 @@ def execute_db_query(conn, query, args=None):
 #    POST     http://localhost:1337/api/modules/search/description  searches module descriptions for a specific term
 #    POST     http://localhost:1337/api/modules/search/comments     searches module comments for a specific term
 #    POST     http://localhost:1337/api/modules/search/author       searches module authors for a specific term
-#
-#    GET      http://localhost:1337/api/listeners                   return all current listeners
-#    GET      http://localhost:1337/api/listeners/Y                 return the listener with id Y
-#    DELETE   http://localhost:1337/api/listeners/Y                 kills listener Y
-#    GET      http://localhost:1337/api/listeners/types             returns a list of the loaded listeners that are available for use
-#    GET      http://localhost:1337/api/listeners/options/Y         return listener options for Y
-#    POST     http://localhost:1337/api/listeners/Y                 starts a new listener with the specified options
 #
 #    GET      http://localhost:1337/api/agents                      return all current agents
 #    GET      http://localhost:1337/api/agents/stale                return all stale agents
@@ -147,8 +133,6 @@ def execute_db_query(conn, query, args=None):
 #    GET      http://localhost:1337/api/reporting/msg/Z             return all logged events matching message Z, wildcards accepted
 #
 #
-#    POST     http://localhost:1337/api/admin/login                 retrieve the API token given the correct username and password
-#    POST     http://localhost:1337/api/admin/logout                logout of current user account
 #    GET      http://localhost:1337/api/admin/restart               restart the RESTful API
 #    GET      http://localhost:1337/api/admin/shutdown              shutdown the RESTful API
 #
@@ -171,6 +155,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     api.register_blueprint(user_blp)
     api.register_blueprint(meta_blp)
     api.register_blueprint(lis_blp)
+    api.register_blueprint(sta_blp)
 
     conn = database_connect()
 
@@ -238,93 +223,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         code = error.code if hasattr(error, 'code') else '500'
         return make_response(jsonify({'error': repr(error)}), code)
-
-    @app.route('/api/stagers', methods=['GET'])
-    def get_stagers():
-        """
-        Returns JSON describing all stagers.
-        """
-
-        stagers = []
-        for stagerName, stager in main.stagers.stagers.items():
-            info = copy.deepcopy(stager.info)
-            info['options'] = stager.options
-            info['Name'] = stagerName
-            stagers.append(info)
-
-        return jsonify({'stagers': stagers})
-
-    @app.route('/api/stagers/<path:stager_name>', methods=['GET'])
-    def get_stagers_name(stager_name):
-        """
-        Returns JSON describing the specified stager_name passed.
-        """
-        if stager_name not in main.stagers.stagers:
-            return make_response(jsonify({
-                'error': 'stager name %s not found, make sure to use [os]/[name] format, ie. windows/dll' % (
-                    stager_name)}), 404)
-
-        stagers = []
-        for stagerName, stager in main.stagers.stagers.items():
-            if stagerName == stager_name:
-                info = copy.deepcopy(stager.info)
-                info['options'] = stager.options
-                info['Name'] = stagerName
-                stagers.append(info)
-
-        return jsonify({'stagers': stagers})
-
-    @app.route('/api/stagers', methods=['POST'])
-    def generate_stager():
-        """
-        Generates a stager with the supplied config and returns JSON information
-        describing the generated stager, with 'Output' being the stager output.
-
-        Required JSON args:
-            StagerName      -   the stager name to generate
-            Listener        -   the Listener name to use for the stager
-        """
-        # TODO dto
-        if not request.json or not 'StagerName' in request.json or not 'Listener' in request.json:
-            abort(400)
-
-        stagerName = request.json['StagerName']
-        listener = request.json['Listener']
-
-        if stagerName not in main.stagers.stagers:
-            return make_response(jsonify({'error': 'stager name %s not found' % (stagerName)}), 404)
-
-        if not main.listeners.is_listener_valid(listener):
-            return make_response(jsonify({'error': 'invalid listener ID or name'}), 400)
-
-        stager = main.stagers.stagers[stagerName]
-
-        # set all passed options
-        for option, values in request.json.items():
-            if option != 'StagerName':
-                if option not in stager.options:
-                    return make_response(jsonify({'error': 'Invalid option %s, check capitalization.' % (option)}), 400)
-                stager.options[option]['Value'] = values
-
-        # validate stager options
-        for option, values in stager.options.items():
-            if values['Required'] and ((not values['Value']) or (values['Value'] == '')):
-                return make_response(jsonify({'error': 'required stager options missing'}), 400)
-
-        stagerOut = copy.deepcopy(stager.options)
-
-        if ('OutFile' in stagerOut) and (stagerOut['OutFile']['Value'] != ''):
-            if isinstance(stager.generate(), str):
-                # if the output was intended for a file, return the base64 encoded text
-                stagerOut['Output'] = base64.b64encode(stager.generate().encode('UTF-8'))
-            else:
-                stagerOut['Output'] = base64.b64encode(stager.generate())
-
-        else:
-            # otherwise return the text of the stager generation
-            stagerOut['Output'] = stager.generate()
-
-        return jsonify({stagerName: stagerOut})
 
     @app.route('/api/modules', methods=['GET'])
     def get_modules():
@@ -1074,35 +972,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
                  "timestamp": time_stamp, "taskID": taskID})
 
         return jsonify({'reporting': reportingEvents})
-
-    @app.route('/api/admin/login', methods=['POST'])
-    def server_login():
-        """
-        Takes a supplied username and password and returns the current API token
-        if authentication is accepted.
-        """
-        login_schema = LoginInputSchema()
-        errors = login_schema.validate(request.json)
-
-        if errors:
-            jsonify({'errors': errors}, 400)
-
-        # try to prevent some basic bruting
-        time.sleep(2)
-        token = Users.user_login(request.json['username'], request.json['password'])
-
-        if token:
-            return jsonify({'token': token})
-        else:
-            return make_response('', 401)
-
-    @app.route('/api/admin/logout', methods=['POST'])
-    def server_logout():
-        """
-        Logs out current user
-        """
-        Users.user_logout(g.user.id)
-        return jsonify({'success': True})
 
     @app.route('/api/admin/restart', methods=['GET', 'POST', 'PUT'])
     def signal_server_restart():

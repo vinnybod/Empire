@@ -29,3 +29,7 @@ class UpdatePasswordInputSchema(Schema):
 class LoginInputSchema(Schema):
     username = fields.Str(required=True)
     password = fields.Str(required=True)
+
+
+class LoginResponseSchema(Schema):
+    token = fields.Str()
