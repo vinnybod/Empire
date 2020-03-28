@@ -1,0 +1,21 @@
+
+test_name: Make sure listener endpoints work
+
+includes:
+  - !include auth_stage.yaml
+
+stages:
+  - type: ref
+    id: login_get_token
+  - name: Make sure listener types are returned
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/listeners/types
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: {'types': ['http_hop', 'http_foreign', 'redirector', 'http_com', 'meterpreter', 'onedrive', 'http', 'dbx', 'http_mapi']}

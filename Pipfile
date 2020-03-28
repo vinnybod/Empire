@@ -29,6 +29,7 @@ pylint = "*"
 sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
 flask-smorest = "*"
+tavern = "*"
 
 [requires]
 python_version = "3.7"

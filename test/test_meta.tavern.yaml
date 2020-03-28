@@ -1,0 +1,43 @@
+
+test_name: Make sure meta endpoints work
+
+includes:
+  - !include auth_stage.yaml
+
+stages:
+  - type: ref
+    id: login_get_token
+  - name: Make sure version is returned
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/meta/version
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body:
+        version: 4.0.0 Beta
+
+  - name: Make sure config is returned
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/meta/config
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body:
+        stagingKey: !anystr
+        ipBlacklist: ''
+        ipWhitelist: ''
+        obfuscateCommand: 'Token\All\1'
+        installPath: !anystr
+        autorunData: ''
+        autorunCommand: ''
+        obfuscate: 0
