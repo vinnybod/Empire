@@ -211,6 +211,11 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
                 user = Users.get_user_from_token(token)
                 if user:
                     g.user = user
+                    # I don't love this, but its a way to get access to the correct instances from the blueprints.
+                    # Ideally, I think I'd like to be able to have single instances of the listener, agents, etc
+                    # that can be imported anywhere and not worry about it being attached to the main object.
+                    # But that might just be the Java programmer in me?
+                    g.main = main
                 else:
                     return make_response('', 401)
         except:
@@ -585,84 +590,12 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
         return jsonify({'modules': modules})
 
-    @app.route('/api/listeners/<string:listener_name>', methods=['DELETE'])
-    def kill_listener(listener_name):
-        """
-        Kills the listener specified by listener_name.
-        """
-        # is there a better way to do this? What if a listener was named all?
-        if listener_name.lower() == "all":
-            listeners = Session().query(models.Listener).all()
-            for listener in listeners:
-                main.listeners.kill_listener(listener.name)
-
-            return jsonify({'success': True})
-        else:
-            if listener_name != "" and main.listeners.is_listener_valid(listener_name):
-                main.listeners.kill_listener(listener_name)
-                return jsonify({'success': True})
-            else:
-                return make_response(jsonify({'error': 'listener name %s not found' % (listener_name)}), 404)
-
-    @app.route('/api/listeners/types', methods=['GET'])
-    def get_listener_types():
-        """
-        Returns a list of the loaded listeners that are available for use.
-        """
-
-        return jsonify({'types': list(main.listeners.loadedListeners.keys())})
-
-    @app.route('/api/listeners/options/<string:listener_type>', methods=['GET'])
-    def get_listener_options(listener_type):
-        """
-        Returns JSON describing listener options for the specified listener type.
-        """
-
-        if listener_type.lower() not in main.listeners.loadedListeners:
-            return make_response(jsonify({'error': 'listener type %s not found' % (listener_type)}), 404)
-
-        options = main.listeners.loadedListeners[listener_type].options
-        return jsonify({'listeneroptions': options})
-
-    @app.route('/api/listeners/<string:listener_type>', methods=['POST'])
-    def start_listener(listener_type):
-        """
-        Starts a listener with options supplied in the POST.
-        """
-        if listener_type.lower() not in main.listeners.loadedListeners:
-            return make_response(jsonify({'error': 'listener type %s not found' % (listener_type)}), 404)
-
-        listener_object = main.listeners.loadedListeners[listener_type]
-        # set all passed options
-        for option, values in request.json.items():
-            if isinstance(values, bytes):
-                values = values.decode('UTF-8')
-            if option == "Name":
-                listener_name = values
-
-            # todo: Can we set listeners without overriding the defaults?
-            returnVal = main.listeners.set_listener_option(listener_type, option, values)
-            if not returnVal:
-                return make_response(
-                    jsonify({'error': 'error setting listener value %s with option %s' % (option, values)}), 400)
-
-        main.listeners.start_listener(listener_type, listener_object)
-
-        # check to see if the listener was created
-        listener_id = main.listeners.get_listener_id(listener_name)
-        if listener_id:
-            return jsonify({'success': 'listener %s successfully started' % listener_name})
-        else:
-            #  todo Should be able to validate the input before getting to this point.
-            #   Shouldn't be a 200
-            return jsonify({'error': 'failed to start listener %s' % listener_name})
-
     @app.route('/api/agents', methods=['GET'])
     def get_agents():
         """
         Returns JSON describing all currently registered agents.
         """
-        agent_schema = AgentSchema(many=True)
+        agent_schema = AgentSchema(many=True, include=("names",) )
         agents = Session().query(models.Agent).all()
 
         return jsonify({'agents': agent_schema.dump(agents)})
@@ -1309,7 +1242,6 @@ if __name__ == '__main__':
 
     elif args.rest:
         # start an Empire instance and RESTful API
-        # todo should users be instantiated inside main menu? is that the right way to do it?
         main = empire.MainMenu(args=args)
 
 
@@ -1331,7 +1263,6 @@ if __name__ == '__main__':
     elif args.headless:
         # start an Empire instance and RESTful API and suppress output
         main = empire.MainMenu(args=args)
-
         try:
             start_restful_api(empireMenu=main, suppress=True, username=args.username, password=args.password,
                               port=args.restport)

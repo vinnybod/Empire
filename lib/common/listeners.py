@@ -20,6 +20,7 @@ from builtins import str
 from pydispatch import dispatcher
 from sqlalchemy.sql.elements import or_
 
+from lib.common.config import InternalConfig
 from lib.database import models
 from lib.database.base import Session
 from . import helpers
@@ -51,11 +52,11 @@ class Listeners(object):
         Load listeners from the install + "/lib/listeners/*" path
         """
 
-        rootPath = "%s/lib/listeners/" % (self.mainMenu.installPath)
+        root_path = "%s/lib/listeners/" % (InternalConfig.get('install_path'))
         pattern = '*.py'
-        print(helpers.color("[*] Loading listeners from: %s" % (rootPath)))
+        print(helpers.color("[*] Loading listeners from: %s" % root_path))
 
-        for root, dirs, files in os.walk(rootPath):
+        for root, dirs, files in os.walk(root_path):
             for filename in fnmatch.filter(files, pattern):
                 filePath = os.path.join(root, filename)
 
