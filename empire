@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import argparse
 import base64
-import copy
 import hashlib
 import json
 import logging
@@ -14,26 +13,25 @@ import sqlite3
 import ssl
 import subprocess
 import sys
-import time
 from time import sleep
 
-from flask import Flask, request, jsonify, make_response, abort, url_for, g
+from flask import Flask, request, jsonify, make_response, g
 # Empire imports
 from flask_smorest import Api
 from sqlalchemy import or_
 
+from lib.api.agents.endpoints import agen_blp
+from lib.api.agents.schemas import AgentSchema
 from lib.api.config import FlaskConfig
 from lib.api.listeners.endpoints import lis_blp
 from lib.api.meta.endpoints import meta_blp
 from lib.api.modules.endpoints import modu_blp
 from lib.api.stagers.endpoints import sta_blp
 from lib.api.users.endpoints import user_blp
-from lib.api.users.schemas import LoginInputSchema
 from lib.common import empire, helpers
 from lib.common.users import Users
 from lib.database import models
 from lib.database.base import Session
-from lib.api.schemas import AgentSchema
 
 if sys.version[0] == '2':
     print(helpers.color("[!] Please use Python 3"))
@@ -149,6 +147,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     api.register_blueprint(lis_blp)
     api.register_blueprint(sta_blp)
     api.register_blueprint(modu_blp)
+    api.register_blueprint(agen_blp)
 
     conn = database_connect()
 
@@ -216,41 +215,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         """
         code = error.code if hasattr(error, 'code') else '500'
         return make_response(jsonify({'error': repr(error)}), code)
-
-    @app.route('/api/agents', methods=['GET'])
-    def get_agents():
-        """
-        Returns JSON describing all currently registered agents.
-        """
-        agent_schema = AgentSchema(many=True, include=("names",) )
-        agents = Session().query(models.Agent).all()
-
-        return jsonify({'agents': agent_schema.dump(agents)})
-
-    @app.route('/api/agents/stale', methods=['GET'])
-    def get_agents_stale():
-        """
-        Returns JSON describing all stale agents.
-        """
-        agent_schema = AgentSchema(many=True)
-        agents = Session().query(models.Agent).filter(models.Agent.stale == True).all()
-
-        return jsonify({'agents': agent_schema.dump(agents)})
-
-    @app.route('/api/agents/stale', methods=['DELETE'])
-    def remove_stale_agent():
-        """
-        Removes stale agents from the controller.
-
-        WARNING: doesn't kill the agent first! Ensure the agent is dead.
-        """
-        agents = Session().query(models.Agent).filter(models.Agent.stale == True).all()
-
-        for agent in agents:
-            Session().delete(agent)
-        Session().commit()
-
-        return jsonify({'success': True})
 
     @app.route('/api/agents/<string:agent_name>', methods=['DELETE'])
     def remove_agent(agent_name):

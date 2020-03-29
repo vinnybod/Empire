@@ -3,8 +3,6 @@ import pickle
 from marshmallow import fields, Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
-from lib.database.models import Agent
-
 
 def camelcase(s):
     parts = iter(s.split("_"))
@@ -38,12 +36,3 @@ class PickleBlob(fields.Field):
 
     def _deserialize(self, value, attr, data, **kwargs):
         return value.dumps(value)
-
-
-class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
-    class Meta:
-        model = Agent
-        include_relationships = True
-        load_instance = True
-
-    stale = fields.Bool()
