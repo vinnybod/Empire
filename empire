@@ -216,43 +216,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         code = error.code if hasattr(error, 'code') else '500'
         return make_response(jsonify({'error': repr(error)}), code)
 
-    @app.route('/api/agents/<string:agent_name>', methods=['DELETE'])
-    def remove_agent(agent_name):
-        """
-        Removes an agent from the controller specified by agent_name.
-
-        WARNING: doesn't kill the agent first! Ensure the agent is dead.
-        """
-        if agent_name.lower() == "all":
-            agents = Session().query(models.Agent).all()
-        else:
-            agents = Session().query(models.Agent).filter(or_(
-                models.Agent.name == agent_name,
-                models.Agent.session_id == agent_name
-            )).all()
-
-        if not agents or len(agents) == 0:
-            return make_response(jsonify({'error': 'agent name %s not found' % agent_name}), 404)
-
-        for agent in agents:
-            Session.delete(agent)
-        Session().commit()
-
-        return jsonify({'success': True})
-
-    @app.route('/api/agents/<string:agent_name>', methods=['GET'])
-    def get_agents_name(agent_name):
-        """
-        Returns JSON describing the agent specified by agent_name.
-        """
-        agent_schema = AgentSchema(many=True)
-        agent = Session().query(models.Agent).filter(models.Agent.name == agent_name).first()
-
-        if agent:
-            return jsonify(agent_schema.dump(agent))
-
-        return make_response({'error': 'Could not find agent'}, 404)
-
     @app.route('/api/agents/<string:agent_name>/results', methods=['GET'])
     def get_agent_results(agent_name):
         """
