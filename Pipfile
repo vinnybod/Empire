@@ -30,6 +30,7 @@ sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
 flask-smorest = "*"
 tavern = "*"
+pycryptodome = "*"
 
 [requires]
 python_version = "3.7"

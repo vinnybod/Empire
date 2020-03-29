@@ -19,7 +19,7 @@ def get_default_config():
     # If so the way it gets the directory needs to be changed.
     punctuation = '!#%&()*+,-./:;<=>?@[]^_{|}~'
     return models.Config(staging_key=''.join(random.sample(string.ascii_letters + string.digits + punctuation, 32)),
-                         install_path=os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/",
+                         install_path=os.getcwd(),
                          ip_whitelist="",
                          ip_blacklist="",
                          autorun_command="",

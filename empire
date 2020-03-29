@@ -191,7 +191,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         Before every request, check if a valid token is passed along with the request.
         """
         try:
-            if request.path != '/api/admin/login' and not request.path.startswith('/doc'):
+            if request.path != '/api/users/login' and not request.path.startswith('/doc'):
                 token = request.args.get('token')
                 user = Users.get_user_from_token(token)
                 if user:

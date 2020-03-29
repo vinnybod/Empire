@@ -39,9 +39,7 @@ if STAGING_KEY == "BLANK":
 elif STAGING_KEY == "RANDOM":
     STAGING_KEY = ''.join(random.sample(string.ascii_letters + string.digits + punctuation, 32))
 
-# Calculate the install path. We know the project directory will always be the parent of the current directory. Any modifications of the folder structure will
-# need to be applied here.
-INSTALL_PATH = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + "/"
+INSTALL_PATH = os.getcwd()
 
 # an IP white list to ONLY accept clients from
 #   format is "192.168.1.1,192.168.1.10-192.168.1.100,10.0.0.0/8"
