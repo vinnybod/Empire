@@ -75,5 +75,4 @@ RUN rm ./data/empire.db
 
 RUN ./cert.sh
 
-
 CMD ["pipenv", "run", "python", "empire"]

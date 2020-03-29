@@ -13,7 +13,7 @@
         "Cookie": {
             "Description": "Custom Cookie Name",
             "Required": false,
-            "Value": "aoYJPbwmHJVeLlyr"
+            "Value": !anystr
         },
         "DefaultDelay": {
             "Description": "Agent delay/reach back interval (in seconds).",
@@ -93,7 +93,7 @@
         "StagingKey": {
             "Description": "Staging key for initial agent negotiation.",
             "Required": true,
-            "Value": "o&g^H3]GEF/O_|zTCI%481*Q>V,~yq["
+            "Value": !anystr
         },
         "UserAgent": {
             "Description": "User-agent string to use for the staging request (default, none, or other).",
