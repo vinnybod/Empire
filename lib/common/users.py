@@ -1,11 +1,13 @@
-import string
-import random
-import bcrypt
-from . import helpers
 import json
+import random
+import string
+
+import bcrypt
 from pydispatch import dispatcher
+
 from lib.database import models
 from lib.database.base import Session
+from . import helpers
 
 
 class Users:
@@ -31,7 +33,7 @@ class Users:
                            last_logon_time=helpers.get_datetime(),
                            enabled=True,
                            admin=False)
-        Session().add()
+        Session().add(user)
         Session().commit()
 
         signal = json.dumps({
@@ -51,7 +53,7 @@ class Users:
         if not Users.user_exists(uid) or Users.is_admin(uid):
             return False
         else:
-            user = Session().query(models.User).where(models.User.id == uid).first()
+            user = Session().query(models.User).filter(models.User.id == uid).first()
             user.enabled = not disable
             Session().commit()
 
@@ -168,7 +170,10 @@ class Users:
         """
         Returns whether a user is an admin or not.
         """
-        return Session().query(models.User.admin).filter(models.User.id == uid).first()
+        user = Session().query(models.User).filter(models.User.id == uid).filter(models.User.admin == True).first()
+        if user:
+            return True
+        return False
 
     @staticmethod
     def get_hashed_password(plain_text_password):

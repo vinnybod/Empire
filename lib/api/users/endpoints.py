@@ -82,7 +82,7 @@ class UsersDisable(MethodView):
 class UsersPassword(MethodView):
 
     @user_blp.arguments(UpdatePasswordInputSchema)
-    @user_blp.response(UserSchema, code=200)
+    @user_blp.response(code=200)
     def put(self, data, user_id):
         # Must be an admin or updating self.
         if not (Users.is_admin(g.user.id) or user_id == g.user.id):
@@ -114,7 +114,7 @@ class UsersLogin(MethodView):
 @user_blp.route('/logout')
 class UserLogout(MethodView):
 
-    @user_blp.response(code="201")
+    @user_blp.response(code=200)
     def post(self):
         """
         Logs out current user

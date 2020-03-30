@@ -1,0 +1,16 @@
+[
+    {
+        "admin": true,
+        "enabled": true,
+        "id": 1,
+        "lastLogonTime": !anystr ,
+        "username": "empireadmin"
+    },
+    {
+        "admin": false,
+        "enabled": true,
+        "id": 2,
+        "lastLogonTime": !anystr ,
+        "username": "user1"
+    }
+]

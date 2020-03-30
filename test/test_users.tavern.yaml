@@ -1,0 +1,192 @@
+
+
+test_name: Verify Users Endpoints
+
+includes:
+  - !include auth_stage.yaml
+
+stages:
+  - type: ref
+    id: login_get_token
+  - name: Verify /me
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/users/me
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: {
+        "admin": true,
+        "enabled": true,
+        "id": 1,
+        "lastLogonTime": !anystr ,
+        "username": "empireadmin",
+        "apiToken": "{test_login_token}"
+      }
+
+  - name: Verify Create User
+    request:
+      params:
+        token: "{test_login_token}"
+      json:
+        username: "user1"
+        password: "password"
+      verify: false
+      url: https://localhost:1337/api/users/
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 201
+      body: {
+        "admin": false,
+        "enabled": true,
+        "id": 2,
+        "lastLogonTime": !anystr ,
+        "username": "user1"
+      }
+
+  - name: Verify Get Users
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/users/
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: !include users_response.json
+      # redo as { users: [] }
+
+  - name: Verify Get User by Id
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/users/2
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: {
+        "admin": false,
+        "enabled": true,
+        "id": 2,
+        "lastLogonTime": !anystr ,
+        "username": "user1"
+      }
+
+  - name: Verify Disable User
+    request:
+      params:
+        token: "{test_login_token}"
+      json:
+        disable: true
+      verify: false
+      url: https://localhost:1337/api/users/2/disable
+      method: PUT
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+
+  - name: Verify Disabled User
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/users/2
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body:
+        enabled: false
+
+  - name: Verify Enable User
+    request:
+      params:
+        token: "{test_login_token}"
+      json:
+        disable: false
+      verify: false
+      url: https://localhost:1337/api/users/2/disable
+      method: PUT
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+
+  - name: Verify Enabled User
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/users/2
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body:
+        enabled: true
+
+  - name: Verify Password Change
+    request:
+      params:
+        token: "{test_login_token}"
+      json:
+        password: "new_password"
+      verify: false
+      url: https://localhost:1337/api/users/2/password
+      method: PUT
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+
+  - name: Attempt login with new password
+    request:
+      json:
+        username: "user1"
+        password: "new_password" # todo use saved var?
+      verify: false
+      url: https://localhost:1337/api/users/login
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+
+  - name: Attempt logout
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/users/logout
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+
+  - name: Verify logout
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/users/
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 401
+
