@@ -229,21 +229,22 @@ class Listeners(object):
             success = listener_object.start(name=name)
 
             if success:
-                listener_object = copy.deepcopy(listener_object.options)
-                self.activeListeners[name] = {'moduleName': module_name, 'options': listener_object}
+                listener_object_options = copy.deepcopy(listener_object.options)
+                self.activeListeners[name] = {'moduleName': module_name, 'options': listener_object_options}
 
                 Session().add(models.Listener(name=name,
                                               module=module_name,
+                                              listener_type=module_name,
                                               listener_category=category,
                                               enabled=True,
-                                              options=pickle.dumps(listener_object.options)))
+                                              options=pickle.dumps(listener_object_options)))
                 Session().commit()
                 # dispatch this event
                 message = "[+] Listener successfully started!"
                 signal = json.dumps({
                     'print': True,
                     'message': message,
-                    'listener_options': listener_object
+                    'listener_options': listener_object_options
                 })
                 dispatcher.send(signal, sender="listeners/{}/{}".format(module_name, name))
             else:

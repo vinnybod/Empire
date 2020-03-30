@@ -71,7 +71,7 @@ RUN pipenv install
 
 COPY . /empire
 
-RUN rm ./data/empire.db
+RUN rm -f ./data/empire.db
 
 RUN ./cert.sh
 

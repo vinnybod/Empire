@@ -6,7 +6,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 from webargs.flaskparser import abort
 
-from lib.api.stagers.schemas import StagersSchema, StagerSchema
+from lib.api.stagers.schemas import StagersSchema, StagerSchema, GenerateStagerSchema, GenerateStagerResponseSchema
 
 sta_blp = Blueprint(
     'stagers', 'stagers', url_prefix='/api/stagers',
@@ -31,9 +31,8 @@ class ConfigView(MethodView):
 
         return {'stagers': stagers}
 
-    # todo argument
-    @sta_blp.arguments(StagerSchema)
-    @sta_blp.response(StagerSchema, code=200)
+    @sta_blp.arguments(GenerateStagerSchema)
+    @sta_blp.response(GenerateStagerResponseSchema, code=200)
     def post(self, data):
         """
         Generates a stager with the supplied config and returns JSON information
@@ -43,24 +42,20 @@ class ConfigView(MethodView):
             StagerName      -   the stager name to generate
             Listener        -   the Listener name to use for the stager
         """
-        # TODO dto
-        if not data['StagerName'] or not data['Listener']:
-            abort(400)
+        stager_name = data['stager_name']
+        listener = data['listener']
 
-        stagerName = data['StagerName']
-        listener = data['Listener']
-
-        if stagerName not in g.main.stagers.stagers:
-            abort(404, message='stager name %s not found' % stagerName)
+        if stager_name not in g.main.stagers.stagers:
+            abort(400, message='stager name %s not found' % stager_name)
 
         if not g.main.listeners.is_listener_valid(listener):
             return abort(400, message='invalid listener ID or name')
 
-        stager = g.main.stagers.stagers[stagerName]
+        stager = g.main.stagers.stagers[stager_name]
 
         # set all passed options
         for option, values in data.items():
-            if option != 'StagerName':
+            if option != 'stager_name':
                 if option not in stager.options:
                     abort(400, message='Invalid option %s, check capitalization.' % option)
                 stager.options[option]['Value'] = values
@@ -70,26 +65,27 @@ class ConfigView(MethodView):
             if values['Required'] and ((not values['Value']) or (values['Value'] == '')):
                 abort(400, message='required stager options missing')
 
-        stagerOut = copy.deepcopy(stager.options)
+        stager_out = copy.deepcopy(stager.options)
 
-        if ('OutFile' in stagerOut) and (stagerOut['OutFile']['Value'] != ''):
+        if ('OutFile' in stager_out) and (stager_out['OutFile']['Value'] != ''):
             if isinstance(stager.generate(), str):
                 # if the output was intended for a file, return the base64 encoded text
-                stagerOut['Output'] = base64.b64encode(stager.generate().encode('UTF-8'))
+                stager_out['Output'] = base64.b64encode(stager.generate().encode('UTF-8'))
             else:
-                stagerOut['Output'] = base64.b64encode(stager.generate())
+                stager_out['Output'] = base64.b64encode(stager.generate())
 
         else:
             # otherwise return the text of the stager generation
-            stagerOut['Output'] = stager.generate()
+            stager_out['Output'] = stager.generate()
 
-        return {stagerName: stagerOut}
+        # TODO This needs some work. other fields are returned besides the outputs.
+        #  The schema is not good in the original endpoint.
+        return {'stager_name': stager_name, 'output': stager_out['Output'], 'outfile': stager_out['OutFile']}
 
 
 @sta_blp.route('/<string:stager_name>')
 class StagerName(MethodView):
 
-    # todo this should return a single entity
     @sta_blp.response(StagerSchema, code=200)
     def get(self, stager_name):
         """
@@ -98,12 +94,11 @@ class StagerName(MethodView):
         if stager_name not in g.main.stagers.stagers:
             abort(404, message='stager name %s not found, make sure to use [os]/[name] format, ie. windows/dll' % stager_name)
 
-        stagers = []
-        for stagerName, stager in g.main.stagers.stagers.items():
-            if stagerName == stager_name:
+        for name, stager in g.main.stagers.stagers.items():
+            if name == stager_name:
                 info = copy.deepcopy(stager.info)
                 info['options'] = stager.options
-                info['Name'] = stagerName
-                stagers.append(info)
+                info['Name'] = name
+                return info
 
-        return {'stagers': stagers}
+        return {}

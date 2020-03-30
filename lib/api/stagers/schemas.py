@@ -1,5 +1,5 @@
 from marshmallow import Schema, fields
-
+from marshmallow.validate import Length
 
 # TODO Duplicate of ListenerOptionSchema
 class StagerOptionSchema(Schema):
@@ -18,3 +18,14 @@ class StagerSchema(Schema):
 
 class StagersSchema(Schema):
     stagers = fields.Nested(StagerSchema, many=True)
+
+
+class GenerateStagerSchema(Schema):
+    stager_name = fields.Str(required=True, validate=Length(min=1))
+    listener = fields.Str(required=True, validate=Length(min=1))
+
+
+class GenerateStagerResponseSchema(Schema):
+    stager_name = fields.Str()
+    output = fields.Str()
+    outfile = fields.Str()

@@ -3,6 +3,7 @@ import time
 from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
@@ -67,8 +68,8 @@ class Agent(Base):
     kill_date = Column(String(255), nullable=True)
     working_hours = Column(String(255), nullable=True)
     lost_limit = Column(Integer)
-    taskings = Column(String(255), nullable=True) #needed?
-    results = Column(String(255), nullable=True) #needed?
+    taskings = relationship("Tasking")
+    results = relationship("Result")
 
     @hybrid_property
     def stale(self):
@@ -120,9 +121,9 @@ class Credential(Base):
 class Tasking(Base):
     __tablename__ = 'taskings'
     id = Column(Integer, Sequence("tasking_id_seq"), primary_key=True)
-    agent = Column(String(255), primary_key=True)
+    agent = Column(String(255), ForeignKey('agents.id'), primary_key=True)
     data = Column(String, nullable=True)
-    user_id = Column(String(255))
+    user_id = Column(String(255), ForeignKey('users.id'), nullable=True)
     time_stamp = Column(String(255))  # TODO Dates?
 
     def __repr__(self):
@@ -133,7 +134,7 @@ class Tasking(Base):
 class Result(Base):
     __tablename__ = 'results'
     id = Column(Integer, Sequence("result_id_seq"), primary_key=True)
-    agent = Column(String(255), primary_key=True)
+    agent = Column(String(255), ForeignKey('agents.id'), primary_key=True)
     data = Column(String, nullable=True)
     user_id = Column(String(255))
 

@@ -98,7 +98,7 @@ class ListenerStart(MethodView):
 
         listener_object = g.main.listeners.loadedListeners[listener_type]
         # set all passed options
-        for option, values in data.items():
+        for option, values in data['options'].items():
             if isinstance(values, bytes):
                 values = values.decode('UTF-8')
             if option == "Name":
