@@ -67,7 +67,6 @@ class Users:
 
     @staticmethod
     def user_login(user_name, password):
-        print("sup boiiii")
         password_from_db = Session().query(models.User.password) \
             .filter(models.User.username == user_name) \
             .filter(models.User.enabled == True) \
