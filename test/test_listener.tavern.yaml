@@ -32,4 +32,4 @@ stages:
         content-type: application/json
     response:
       status_code: 200
-      body: !include test_data.json
+      body: !include listener_options_response.json

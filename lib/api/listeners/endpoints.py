@@ -84,11 +84,12 @@ class ListenerType(MethodView):
         return {'listener_options': options}
 
 
+@lis_blp.route('/<string:listener_type>')
 class ListenerStart(MethodView):
 
     @lis_blp.arguments(ListenerStartRequestSchema)
     @lis_blp.response(ListenerSchema, code=201)
-    def get(self, data, listener_type):
+    def post(self, data, listener_type):
         """
         Starts a listener with options supplied in the POST.
         """
