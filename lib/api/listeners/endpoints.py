@@ -40,7 +40,7 @@ class ListenerName(MethodView):
 
         return listener
 
-    @lis_blp.response(code=201)
+    @lis_blp.response(code=204)
     def delete(self, listener_name):
         """
         Kills the listener specified by listener_name.

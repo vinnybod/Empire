@@ -233,7 +233,7 @@ class Listeners(object):
                 self.activeListeners[name] = {'moduleName': module_name, 'options': listener_object_options}
 
                 Session().add(models.Listener(name=name,
-                                              module=module_name,
+                                              module=module_name, # todo is this duplicate? did i mess this up?
                                               listener_type=module_name,
                                               listener_category=category,
                                               enabled=True,

@@ -33,3 +33,55 @@ stages:
     response:
       status_code: 200
       body: !include listener_options_response.json
+
+  - name: Verify start http listener
+    request:
+      params:
+        token: "{test_login_token}"
+      json: !include listener_start_request.json
+      verify: false
+      url: https://localhost:1337/api/listeners/http
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 201
+      body: !include listener_start_response.json
+
+  - name: Verify get listener
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/listeners/listenerOne # todo var
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: !include listener_start_response.json
+
+  - name: Verify get all listeners
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/listeners/
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: { "listeners": !anylist }
+
+  - name: Verify delete listener
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/listeners/listenerOne # todo var
+      method: DELETE
+      headers:
+        content-type: application/json
+    response:
+      status_code: 204

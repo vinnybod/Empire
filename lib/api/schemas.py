@@ -25,8 +25,8 @@ class CamelCaseSchema(Schema):
 
 
 class PickleBlob(fields.Field):
-    """Field that serializes to a title case string and deserializes
-    to a lower case string.
+    """Field that serializes to a pickle and deserializes
+    to a string string.
     """
 
     def _serialize(self, value, attr, obj, **kwargs):

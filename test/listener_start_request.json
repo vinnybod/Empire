@@ -1,0 +1,14 @@
+{
+  "options": {
+    "Name": "listenerOne",
+    "Host": "http://localhost:1336",
+    "Port": "1336",
+    "BindIP": "0.0.0.0",
+    "Launcher": "powershell -noP -sta -w 1 -enc",
+    "StagingKey": "2c103f2c4ed1e59c0b4e2e01821770fa",
+    "DefaultDelay": "5",
+    "DefaultJitter": "0.0",
+    "DefaultLostLimit": "60",
+    "DefaultProfile": "/admin/get.php,/news.php,/login/process.php|Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
+  }
+}
