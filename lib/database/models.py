@@ -1,6 +1,6 @@
 import time
 
-from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB, ForeignKey
+from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB, ForeignKey, PickleType
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -31,7 +31,7 @@ class Listener(Base):
     listener_type = Column(String(255), nullable=False)
     listener_category = Column(String(255), nullable=False)
     enabled = Column(Boolean, nullable=False)
-    options = Column(BLOB, nullable=True)
+    options = Column(PickleType, nullable=True)
 
     def __repr__(self):
         return "<Listener(name='%s')>" % (

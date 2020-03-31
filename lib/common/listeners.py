@@ -213,7 +213,7 @@ class Listeners(object):
         if not listener_object.validate_options():
             return
 
-        # TODO: Took me a second to figure out what was going on here.
+        # TODO vr Took me a second to figure out what was going on here.
         #   We'd get stuck in an infinite loop, fixed with i +=1.
         #   I think we should just throw a 400 in the api if the name already exists?
         #   Not sure about the CLI
@@ -233,11 +233,11 @@ class Listeners(object):
                 self.activeListeners[name] = {'moduleName': module_name, 'options': listener_object_options}
 
                 Session().add(models.Listener(name=name,
-                                              module=module_name, # todo is this duplicate? did i mess this up?
+                                              module=module_name, # todo vr is this duplicate? did i mess this up?
                                               listener_type=module_name,
                                               listener_category=category,
                                               enabled=True,
-                                              options=pickle.dumps(listener_object_options)))
+                                              options=listener_object_options))
                 Session().commit()
                 # dispatch this event
                 message = "[+] Listener successfully started!"
@@ -459,7 +459,7 @@ class Listeners(object):
             to_update.enabled = False
             Session.commit()
 
-            # TODO here we search with .lower() do we always store with .lower()?
+            # TODO vr here we search with .lower() do we always store with .lower()?
             # cur.execute("UPDATE listeners SET enabled=? WHERE name=? AND NOT module=?",
             # [False, listenerName.lower(), "redirector"])
         self.shutdown_listener(listenerName)
@@ -472,7 +472,7 @@ class Listeners(object):
         dispatcher.send(signal, sender="listeners/{}/{}".format(active_listener_module_name, listenerName))
 
     def is_listener_valid(self, name):
-        # todo use db?
+        # todo vr use db?
         return name in self.activeListeners
 
     def get_listener_id(self, name):
@@ -528,10 +528,10 @@ class Listeners(object):
         """
         Returns any listeners that are not currently running
         """
-        # TODO can we just manage from within the database?
+        # TODO vr can we just manage from within the database?
         db_listeners = Session().query(models.Listener).all()
 
-        # TODO Here we do not do a .lower() on the comparison. Inconsistency
+        # TODO vr Here we do not do a .lower() on the comparison. Inconsistency
         inactive_listeners = {}
         for listener in filter((lambda x: x.name not in list(self.activeListeners.keys())), db_listeners):
             inactive_listeners[listener.name] = {'moduleName': listener.module,

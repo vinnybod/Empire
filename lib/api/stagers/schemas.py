@@ -1,7 +1,10 @@
 from marshmallow import Schema, fields
 from marshmallow.validate import Length
 
+
 # TODO Duplicate of ListenerOptionSchema
+# Should probably put this in the base schema file to be used for listeners and modules
+# and also make the letters lowercase.
 class StagerOptionSchema(Schema):
     Description = fields.Str()
     Required = fields.Bool()

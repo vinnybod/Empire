@@ -1,6 +1,4 @@
-import pickle
-
-from marshmallow import fields, Schema
+from marshmallow import Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 
@@ -22,17 +20,3 @@ class CamelCaseSchema(Schema):
 
     def on_bind_field(self, field_name, field_obj):
         field_obj.data_key = camelcase(field_obj.data_key or field_name)
-
-
-class PickleBlob(fields.Field):
-    """Field that serializes to a pickle and deserializes
-    to a string string.
-    """
-
-    def _serialize(self, value, attr, obj, **kwargs):
-        if value is None:
-            return ""
-        return pickle.loads(value)
-
-    def _deserialize(self, value, attr, data, **kwargs):
-        return value.dumps(value)
