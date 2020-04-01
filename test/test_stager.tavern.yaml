@@ -1,4 +1,3 @@
-
 test_name: Make sure meta endpoints work
 
 includes:
@@ -12,7 +11,7 @@ stages:
       params:
         token: "{test_login_token}"
       verify: false
-      url: https://localhost:1337/api/stagers/
+      url: http://localhost:1337/api/stagers/
       method: GET
       headers:
         content-type: application/json
@@ -25,7 +24,7 @@ stages:
       params:
         token: "{test_login_token}"
       verify: false
-      url: https://localhost:1337/api/stagers/osx-application
+      url: http://localhost:1337/api/stagers/osx-application
       method: GET
       headers:
         content-type: application/json
@@ -33,16 +32,31 @@ stages:
       status_code: 200
       body: !include stager_osx_response.json
 
-#  - name: Verify Generate Stager With File
-#    request:
-#      params:
-#        token: "{test_login_token}"
-#      json: !include stager_generate_file_request.json
-#      verify: false
-#      url: https://localhost:1337/api/stagers/
-#      method: POST
-#      headers:
-#        content-type: application/json
-#    response:
-#      status_code: 200
-#      body: {}
+  - name: Verify Generate Stager No File
+    request:
+      params:
+        token: "{test_login_token}"
+      json: !include stager_generate_request.json
+      verify: false
+      url: http://localhost:1337/api/stagers/osx-launcher
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: !include stager_generate_response.json
+
+  - name: Verify Generate Stager With File
+    request:
+      params:
+        token: "{test_login_token}"
+      json: !include stager_generate_file_request.json
+      verify: false
+      url: http://localhost:1337/api/stagers/osx-application
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: !include stager_generate_file_response.json
+    # todo validate output converts to a file properly.

@@ -24,7 +24,6 @@ class StagersSchema(Schema):
 
 
 class GenerateStagerSchema(Schema):
-    stager_name = fields.Str(required=True, validate=Length(min=1))
     listener = fields.Str(required=True, validate=Length(min=1))
     options = fields.Dict(keys=fields.Str(), values=fields.Str(), required=True)
 
@@ -33,4 +32,3 @@ class GenerateStagerResponseSchema(Schema):
     stager_name = fields.Str()
     options = fields.Dict(keys=fields.Str(), values=fields.Nested(StagerOptionSchema))
     output = fields.Str()
-    outfile = fields.Str()

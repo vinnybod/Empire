@@ -1,6 +1,9 @@
 from marshmallow import Schema
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
+# TODO vr for all schemas, ignore extra fields.
+# TODO vr control order of properties on all schemas.
+
 
 def camelcase(s):
     parts = iter(s.split("_"))
