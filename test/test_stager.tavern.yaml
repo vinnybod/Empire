@@ -1,0 +1,48 @@
+
+test_name: Make sure meta endpoints work
+
+includes:
+  - !include auth_stage.yaml
+
+stages:
+  - type: ref
+    id: login_get_token
+  - name: Verify all stagers get
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/stagers/
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: { "stagers": !anylist }
+
+  - name: Verify a stager returns
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: https://localhost:1337/api/stagers/osx-application
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: !include stager_osx_response.json
+
+#  - name: Verify Generate Stager With File
+#    request:
+#      params:
+#        token: "{test_login_token}"
+#      json: !include stager_generate_file_request.json
+#      verify: false
+#      url: https://localhost:1337/api/stagers/
+#      method: POST
+#      headers:
+#        content-type: application/json
+#    response:
+#      status_code: 200
+#      body: {}

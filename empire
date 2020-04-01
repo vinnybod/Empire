@@ -109,7 +109,7 @@ def execute_db_query(conn, query, args=None):
 #
 ####################################################################
 
-def start_restful_api(empireMenu, suppress=False, username=None, password=None, port=1337):
+def start_restful_api(empireMenu, suppress=False, username=None, password=None, port=1337, insecure=False):
     """
     Kick off the RESTful API with the given parameters.
 
@@ -448,8 +448,11 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
     context = ssl.SSLContext(proto)
     context.load_cert_chain("%s/empire-chain.pem" % (certPath), "%s/empire-priv.key" % (certPath))
-    app.run(host='0.0.0.0', port=int(port), ssl_context=context, threaded=True)
 
+    if insecure:
+        app.run(host='0.0.0.0', port=int(port), threaded=True)
+    else:
+        app.run(host='0.0.0.0', port=int(port), ssl_context=context, threaded=True)
 
 if __name__ == '__main__':
 
@@ -480,6 +483,7 @@ if __name__ == '__main__':
                            help='Start the RESTful API with the specified username instead of pulling from empire.db')
     restGroup.add_argument('--password', nargs=1,
                            help='Start the RESTful API with the specified password instead of pulling from empire.db')
+    restGroup.add_argument('--insecure', action="store_true", help="Run Empire's Api without ssl")
 
     args = parser.parse_args()
     database_check_docker()
@@ -501,7 +505,7 @@ if __name__ == '__main__':
 
             try:
                 start_restful_api(empireMenu=empireMenu, suppress=False, username=args.username, password=args.password,
-                                  port=args.restport)
+                                  port=args.restport, insecure=args.insecure)
             except SystemExit as e:
                 pass
 

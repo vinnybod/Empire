@@ -7,7 +7,7 @@ from lib.database.models import Listener
 class ListenerOptionSchema(Schema):
     Description = fields.Str()
     Required = fields.Bool()  # todo vr make camelCase
-    Value = fields.Str()  # todo vr This is why it is all strings
+    Value = fields.Str()  # todo vr This is why it is all strings. Maybe we should add a type field.
 
 
 class ListenerOptionsSchema(Schema):

@@ -270,13 +270,15 @@ class Listeners(object):
                 listener_name = "%s%s" % (name_base, i)
                 i += 1
 
+            # todo vr remove if it works
             # unpickle all the listener options
-            options = pickle.loads(listener.options)
+            # the listner options are already unpickled by sqlalchemy's PickleType
+            # options = pickle.loads(listener.options)
 
             try:
                 listener_module = self.loadedListeners[listener.module]
 
-                for option, value in options.items():
+                for option, value in listener.options.items():
                     listener_module.options[option] = value
 
                 print(helpers.color("[*] Starting listener '%s'" % listener_name))

@@ -15,13 +15,14 @@ sta_blp = Blueprint(
 
 
 @sta_blp.route('/')
-class ConfigView(MethodView):
+class StagerView(MethodView):
 
     @sta_blp.response(StagersSchema, code=200)
     def get(self):
         """
         Returns JSON describing all stagers.
         """
+        # todo vr post without ending '/' get routed to this get. wtf?
         stagers = []
         for stagerName, stager in g.main.stagers.stagers.items():
             info = copy.deepcopy(stager.info)
@@ -42,6 +43,8 @@ class ConfigView(MethodView):
             StagerName      -   the stager name to generate
             Listener        -   the Listener name to use for the stager
         """
+        #  todo vr stager_name could be in the path. Then we always treat it as - instead of /
+        #   also request schemas still use snake case
         stager_name = data['stager_name']
         listener = data['listener']
 
@@ -54,11 +57,10 @@ class ConfigView(MethodView):
         stager = g.main.stagers.stagers[stager_name]
 
         # set all passed options
-        for option, values in data.items():
-            if option != 'stager_name':
-                if option not in stager.options:
-                    abort(400, message='Invalid option %s, check capitalization.' % option)
-                stager.options[option]['Value'] = values
+        for option, values in data['options'].items():
+            if option not in stager.options:
+                abort(400, message='Invalid option %s, check capitalization.' % option)
+            stager.options[option]['Value'] = values
 
         # validate stager options
         for option, values in stager.options.items():
@@ -67,12 +69,14 @@ class ConfigView(MethodView):
 
         stager_out = copy.deepcopy(stager.options)
 
+        # todo vr The conversion to b64 string doens't seem to work the way we expect.
         if ('OutFile' in stager_out) and (stager_out['OutFile']['Value'] != ''):
-            if isinstance(stager.generate(), str):
+            output = stager.generate()
+            if isinstance(output, str):
                 # if the output was intended for a file, return the base64 encoded text
-                stager_out['Output'] = base64.b64encode(stager.generate().encode('UTF-8'))
+                stager_out['Output'] = base64.b64encode(output.encode('UTF-8'))
             else:
-                stager_out['Output'] = base64.b64encode(stager.generate())
+                stager_out['Output'] = base64.b64encode(output)
 
         else:
             # otherwise return the text of the stager generation
@@ -80,7 +84,8 @@ class ConfigView(MethodView):
 
         # TODO This needs some work. other fields are returned besides the outputs.
         #  The schema is not good in the original endpoint.
-        return {'stager_name': stager_name, 'output': stager_out['Output'], 'outfile': stager_out['OutFile']}
+        #  Keep options the way it is normally and then add a field called output and outfile?
+        return {'stager_name': stager_name, 'options': stager_out}
 
 
 @sta_blp.route('/<string:stager_name>')
@@ -91,6 +96,10 @@ class StagerName(MethodView):
         """
         Returns JSON describing the specified stager_name passed.
         """
+        # todo Slashes in the path variable that aren't url-encoded are a nono.
+        #  We should either start expecting a url-encoded string or name them differently.
+        #  https://github.com/pallets/flask/issues/900
+        stager_name = stager_name.replace('-', '/', 1)
         if stager_name not in g.main.stagers.stagers:
             abort(404, message='stager name %s not found, make sure to use [os]/[name] format, ie. windows/dll' % stager_name)
 
