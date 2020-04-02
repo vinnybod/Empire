@@ -43,6 +43,8 @@ from __future__ import print_function
 
 from future import standard_library
 
+from lib import arguments
+
 standard_library.install_aliases()
 from builtins import str
 from builtins import range
@@ -66,9 +68,6 @@ import fnmatch
 import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
 import hashlib
 import datetime
-import uuid
-import ipaddress
-import simplejson as json
 
 from datetime import datetime
 
@@ -594,7 +593,7 @@ def get_config(fields):
         i.e. 'version,install_path'
     """
 
-    conn = sqlite3.connect('./data/empire.db', check_same_thread=False)
+    conn = sqlite3.connect('./data/' + arguments.args.db, check_same_thread=False)
     conn.isolation_level = None
 
     cur = conn.cursor()
@@ -619,7 +618,7 @@ def get_listener_options(listenerName):
     of the normal menu execution.
     """
     try:
-        conn = sqlite3.connect('./data/empire.db', check_same_thread=False)
+        conn = sqlite3.connect('./data/' + arguments.args.db, check_same_thread=False)
         conn.isolation_level = None
         conn.row_factory = dict_factory
         cur = conn.cursor()

@@ -2,21 +2,21 @@
 
 from __future__ import print_function
 
-import argparse
 import json
 import logging
 import os
 import signal
 import sqlite3
 import ssl
-import subprocess
 import sys
 from time import sleep
 
 from flask import Flask, request, jsonify, make_response, g
-# Empire imports
 from flask_smorest import Api
 
+# Empire imports
+# Parse the arguments before importing any other empire modules
+from lib import arguments
 from lib.api.agents.endpoints import agen_blp
 from lib.api.config import FlaskConfig
 from lib.api.listeners.endpoints import lis_blp
@@ -43,16 +43,6 @@ serverExitCommand = 'restart'
 #####################################################
 
 
-def database_check_docker():
-    """
-    Check for docker and setup database if nessary.
-    """
-    if os.path.exists('/.dockerenv'):
-        if not os.path.exists('data/empire.db'):
-            print('[*] Fresh start in docker, running reset.sh for you')
-            subprocess.call(['./setup/reset.sh'])
-
-
 def database_connect():
     """
     Connect with the backend ./empire.db sqlite database and return the
@@ -60,7 +50,7 @@ def database_connect():
     """
     try:
         # set the database connectiont to autocommit w/ isolation level
-        conn = sqlite3.connect('./data/empire.db', check_same_thread=False)
+        conn = sqlite3.connect('./data/' + arguments.args.db, check_same_thread=False)
         conn.text_factory = str
         conn.isolation_level = None
         return conn
@@ -135,9 +125,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     main = empireMenu
 
     global serverExitCommand
-
-    # if a username/password were not supplied, use the creds stored in the db
-    # (dbUsername, dbPassword) = execute_db_query(conn, "SELECT api_username, api_password FROM config")[0]
 
     if username:
         Users.update_username(1, username[0])
@@ -455,38 +442,7 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         app.run(host='0.0.0.0', port=int(port), ssl_context=context, threaded=True)
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
-
-    generalGroup = parser.add_argument_group('General Options')
-    generalGroup.add_argument('--debug', nargs='?', const='1',
-                              help='Debug level for output (default of 1, 2 for msg display).')
-    generalGroup.add_argument('-v', '--version', action='store_true', help='Display current Empire version.')
-    generalGroup.add_argument('-r', '--resource', nargs=1,
-                              help='Run the Empire commands in the specified resource file after startup.')
-
-    cliGroup = parser.add_argument_group('CLI Payload Options')
-    cliGroup.add_argument('-l', '--listener', nargs='?', const="list",
-                          help='Display listener options. Displays all listeners if nothing is specified.')
-    cliGroup.add_argument('-s', '--stager', nargs='?', const="list",
-                          help='Specify a stager to generate. Lists all stagers if none is specified.')
-    cliGroup.add_argument('-o', '--stager-options', nargs='*',
-                          help="Supply options to set for a stager in OPTION=VALUE format. Lists options if nothing is specified.")
-
-    restGroup = parser.add_argument_group('RESTful API Options')
-    launchGroup = restGroup.add_mutually_exclusive_group()
-    launchGroup.add_argument('--rest', action='store_true', help='Run Empire and the RESTful API.')
-    launchGroup.add_argument('--headless', action='store_true',
-                             help='Run Empire and the RESTful API headless without the usual interface.')
-    restGroup.add_argument('--restport', type=int, nargs=1, help='Port to run the Empire RESTful API on.')
-    restGroup.add_argument('--username', nargs=1,
-                           help='Start the RESTful API with the specified username instead of pulling from empire.db')
-    restGroup.add_argument('--password', nargs=1,
-                           help='Start the RESTful API with the specified password instead of pulling from empire.db')
-    restGroup.add_argument('--insecure', action="store_true", help="Run Empire's Api without ssl")
-
-    args = parser.parse_args()
-    database_check_docker()
+    args = arguments.args
 
     if not args.restport:
         args.restport = '1337'

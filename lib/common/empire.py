@@ -15,6 +15,8 @@ from builtins import input
 from builtins import str
 from builtins import range
 
+from lib import arguments
+
 VERSION = "4.0.0 Beta"
 
 from pydispatch import dispatcher
@@ -25,11 +27,8 @@ import sqlite3
 import os
 import hashlib
 import time
-import fnmatch
 import shlex
-import marshal
 import pkgutil
-import importlib
 import base64
 import threading
 import json
@@ -43,10 +42,9 @@ from . import modules
 from . import stagers
 from . import credentials
 from . import plugins
-from . import users
 from .events import log_event
 from zlib_wrapper import compress
-from zlib_wrapper import decompress
+
 
 # custom exceptions used for nested menu navigation
 class NavMain(Exception):
@@ -316,7 +314,7 @@ class MainMenu(cmd.Cmd):
         """
         try:
             # set the database connectiont to autocommit w/ isolation level
-            self.conn = sqlite3.connect('./data/empire.db', check_same_thread=False)
+            self.conn = sqlite3.connect('./data/' + arguments.args.db, check_same_thread=False)
             self.conn.text_factory = str
             self.conn.isolation_level = None
             return self.conn
