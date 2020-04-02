@@ -93,6 +93,8 @@ class ListenerStart(MethodView):
         """
         Starts a listener with options supplied in the POST.
         """
+        # todo vr either here or in the service, we need to just throw if it already exists.
+        # the logic of trying to fix the name hides the actual problem and we end up giving a 201 here
         if listener_type.lower() not in g.main.listeners.loadedListeners:
             abort(404, message='listener type %s not found')
 

@@ -1,0 +1,20 @@
+name: Create http listener stage
+description: Reusable Stage for creating a listener. Necessary for testing things like Stagers.
+stages:
+  - id: start_http_listener
+    name: Start http listener
+    request:
+      params:
+        token: "{test_login_token}"
+      json: !include listener_start_request.json
+      verify: false
+      url: http://localhost:1337/api/listeners/http
+      method: POST
+      headers:
+        content-type: application/json
+    response:
+      status_code: 201
+      body: !include listener_start_response.json
+      save:
+        body:
+          listener_name: name

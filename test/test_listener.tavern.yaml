@@ -13,7 +13,7 @@ stages:
       params:
         token: "{test_login_token}"
       verify: false
-      url: https://localhost:1337/api/listeners/types
+      url: http://localhost:1337/api/listeners/types
       method: GET
       headers:
         content-type: application/json
@@ -26,7 +26,7 @@ stages:
       params:
         token: "{test_login_token}"
       verify: false
-      url: https://localhost:1337/api/listeners/options/http
+      url: http://localhost:1337/api/listeners/options/http
       method: GET
       headers:
         content-type: application/json
@@ -40,7 +40,7 @@ stages:
         token: "{test_login_token}"
       json: !include listener_start_request.json
       verify: false
-      url: https://localhost:1337/api/listeners/http
+      url: http://localhost:1337/api/listeners/http
       method: POST
       headers:
         content-type: application/json
@@ -53,7 +53,7 @@ stages:
       params:
         token: "{test_login_token}"
       verify: false
-      url: https://localhost:1337/api/listeners/listenerOne # todo var
+      url: http://localhost:1337/api/listeners/listenerOne # todo var
       method: GET
       headers:
         content-type: application/json
@@ -66,7 +66,7 @@ stages:
       params:
         token: "{test_login_token}"
       verify: false
-      url: https://localhost:1337/api/listeners/
+      url: http://localhost:1337/api/listeners/
       method: GET
       headers:
         content-type: application/json
@@ -79,7 +79,7 @@ stages:
       params:
         token: "{test_login_token}"
       verify: false
-      url: https://localhost:1337/api/listeners/listenerOne # todo var
+      url: http://localhost:1337/api/listeners/listenerOne # todo var
       method: DELETE
       headers:
         content-type: application/json

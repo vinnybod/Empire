@@ -2,10 +2,13 @@ test_name: Make sure meta endpoints work
 
 includes:
   - !include auth_stage.yaml
+  - !include listener_stage.yaml
 
 stages:
   - type: ref
     id: login_get_token
+  - type: ref
+    id: start_http_listener
   - name: Verify all stagers get
     request:
       params:

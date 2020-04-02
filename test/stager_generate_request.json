@@ -1,5 +1,5 @@
 {
-  "listener": "listenerOne",
+  "listener": "{listener_name}" ,
   "options": {
     "Language": "python",
     "Listener": "listenerOne",
