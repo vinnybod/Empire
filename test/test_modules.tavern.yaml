@@ -1,0 +1,23 @@
+test_name: Make sure modules endpoints work
+
+includes:
+  - !include includes/auth_stage.yaml
+  - !include includes/listener_stage.yaml
+
+stages:
+  - type: ref
+    id: login_get_token
+  - type: ref
+    id: start_http_listener
+  - name: Verify a module returns
+    request:
+      params:
+        token: "{test_login_token}"
+      verify: false
+      url: http://localhost:1337/api/modules/ # todo need to take slashes out of names just like stagers...
+      method: GET
+      headers:
+        content-type: application/json
+    response:
+      status_code: 200
+      body: [] # todo vrs

@@ -1,17 +1,11 @@
 from marshmallow import Schema, fields
 
-from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema
+from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema, CustomOptionSchema
 from lib.database.models import Listener
 
 
-class ListenerOptionSchema(Schema):
-    Description = fields.Str()
-    Required = fields.Bool()  # todo vr make camelCase
-    Value = fields.Str()  # todo vr This is why it is all strings. Maybe we should add a type field.
-
-
 class ListenerOptionsSchema(Schema):
-    listener_options = fields.Dict(keys=fields.Str(), values=fields.Nested(ListenerOptionSchema))
+    listener_options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
 
 
 class ListenerSchema(CamelCaseSqlAlchemyAutoSchema):
@@ -20,7 +14,7 @@ class ListenerSchema(CamelCaseSqlAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
 
-    options = fields.Dict(keys=fields.Str(), values=fields.Nested(ListenerOptionSchema))
+    options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
 
 
 class ListenersSchema(CamelCaseSqlAlchemyAutoSchema):

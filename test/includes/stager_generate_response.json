@@ -1,0 +1,36 @@
+{
+  "options": {
+    "Base64": {
+      "description": "Switch. Base64 encode the output.",
+      "required": true,
+      "value": "True"
+    },
+    "Language": {
+      "description": "Language of the stager to generate.",
+      "required": true,
+      "value": "python"
+    },
+    "Listener": {
+      "description": "Listener to generate stager for.",
+      "required": true,
+      "value": "{listener_name}"
+    },
+    "OutFile": {
+      "description": "File to output launcher to, otherwise displayed on the screen.",
+      "required": false,
+      "value": "/tmp/out.zip"
+    },
+    "SafeChecks": {
+      "description": "Switch. Checks for LittleSnitch or a SandBox, exit the staging process if true. Defaults to True.",
+      "required": true,
+      "value": "True"
+    },
+    "UserAgent": {
+      "description": "User-agent string to use for the staging request (default, none, or other).",
+      "required": false,
+      "value": "default"
+    }
+  },
+  "output": !anystr ,
+  "stager_name": "osx/launcher"
+}

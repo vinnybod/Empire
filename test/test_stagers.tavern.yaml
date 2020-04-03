@@ -1,8 +1,8 @@
 test_name: Make sure meta endpoints work
 
 includes:
-  - !include auth_stage.yaml
-  - !include listener_stage.yaml
+  - !include includes/auth_stage.yaml
+  - !include includes/listener_stage.yaml
 
 stages:
   - type: ref
@@ -33,13 +33,13 @@ stages:
         content-type: application/json
     response:
       status_code: 200
-      body: !include stager_osx_response.json
+      body: !include includes/stager_osx_response.json
 
   - name: Verify Generate Stager No File
     request:
       params:
         token: "{test_login_token}"
-      json: !include stager_generate_request.json
+      json: !include includes/stager_generate_request.json
       verify: false
       url: http://localhost:1337/api/stagers/osx-launcher
       method: POST
@@ -47,13 +47,13 @@ stages:
         content-type: application/json
     response:
       status_code: 200
-      body: !include stager_generate_response.json
+      body: !include includes/stager_generate_response.json
 
   - name: Verify Generate Stager With File
     request:
       params:
         token: "{test_login_token}"
-      json: !include stager_generate_file_request.json
+      json: !include includes/stager_generate_file_request.json
       verify: false
       url: http://localhost:1337/api/stagers/osx-application
       method: POST
@@ -61,5 +61,5 @@ stages:
         content-type: application/json
     response:
       status_code: 200
-      body: !include stager_generate_file_response.json
+      body: !include includes/stager_generate_file_response.json
     # todo validate output converts to a file properly.

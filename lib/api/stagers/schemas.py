@@ -1,22 +1,15 @@
 from marshmallow import Schema, fields
 from marshmallow.validate import Length
 
-
-# TODO Duplicate of ListenerOptionSchema
-# Should probably put this in the base schema file to be used for listeners and modules
-# and also make the letters lowercase.
-class StagerOptionSchema(Schema):
-    Description = fields.Str()
-    Required = fields.Bool()
-    Value = fields.Str()
+from lib.api.schemas import CustomOptionSchema
 
 
 class StagerSchema(Schema):
-    Author = fields.List(fields.Str())
-    Comments = fields.List(fields.Str())
-    Description = fields.Str()
-    Name = fields.Str()
-    options = fields.Dict(keys=fields.Str(), values=fields.Nested(StagerOptionSchema))
+    author = fields.List(fields.Str(), attribute="Author")
+    comments = fields.List(fields.Str(), attribute="Comments")
+    description = fields.Str(attribute="Description")
+    name = fields.Str(attribute="Name")
+    options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
 
 
 class StagersSchema(Schema):
@@ -30,5 +23,5 @@ class GenerateStagerSchema(Schema):
 
 class GenerateStagerResponseSchema(Schema):
     stager_name = fields.Str()
-    options = fields.Dict(keys=fields.Str(), values=fields.Nested(StagerOptionSchema))
+    options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
     output = fields.Str()

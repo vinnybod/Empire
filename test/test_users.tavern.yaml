@@ -1,7 +1,7 @@
 test_name: Verify Users Endpoints
 
 includes:
-  - !include auth_stage.yaml
+  - !include includes/auth_stage.yaml
 
 stages:
   - type: ref
@@ -59,7 +59,7 @@ stages:
         content-type: application/json
     response:
       status_code: 200
-      body: !include users_response.json
+      body: !include includes/users_response.json
       # redo as { users: [] }
 
   - name: Verify Get User by Id

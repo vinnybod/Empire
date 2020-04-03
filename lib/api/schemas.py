@@ -1,4 +1,4 @@
-from marshmallow import Schema
+from marshmallow import Schema, fields
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 # TODO vr for all schemas, ignore extra fields.
@@ -23,3 +23,9 @@ class CamelCaseSchema(Schema):
 
     def on_bind_field(self, field_name, field_obj):
         field_obj.data_key = camelcase(field_obj.data_key or field_name)
+
+
+class CustomOptionSchema(Schema):
+    description = fields.Str(attribute="Description")
+    required = fields.Bool(attribute="Required")
+    value = fields.Str(attribute="Value")  # todo vr This is why it is all strings. Maybe we should add a type field.

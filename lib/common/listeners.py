@@ -270,11 +270,6 @@ class Listeners(object):
                 listener_name = "%s%s" % (name_base, i)
                 i += 1
 
-            # todo vr remove if it works
-            # unpickle all the listener options
-            # the listner options are already unpickled by sqlalchemy's PickleType
-            # options = pickle.loads(listener.options)
-
             try:
                 listener_module = self.loadedListeners[listener.module]
 

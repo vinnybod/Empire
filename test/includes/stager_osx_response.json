@@ -1,0 +1,52 @@
+{
+  "author": [
+    "@xorrior"
+  ],
+  "comments": [
+    ""
+  ],
+  "description": "Generates an Empire Application.",
+  "name": "osx/application",
+  "options": {
+    "AppIcon": {
+      "description": "Path to AppIcon.icns file. The size should be 16x16,32x32,128x128, or 256x256. Defaults to none.",
+      "required": false,
+      "value": ""
+    },
+    "AppName": {
+      "description": "Name of the Application Bundle. This change will reflect in the Info.plist and the name of the binary in Contents/MacOS/.",
+      "required": false,
+      "value": ""
+    },
+    "Architecture": {
+      "description": "Architecture to use. x86 or x64",
+      "required": true,
+      "value": "x64"
+    },
+    "Language": {
+      "description": "Language of the stager to generate.",
+      "required": true,
+      "value": "python"
+    },
+    "Listener": {
+      "description": "Listener to generate stager for.",
+      "required": true,
+      "value": ""
+    },
+    "OutFile": {
+      "description": "path to output Empire application. The application will be saved to a zip file.",
+      "required": true,
+      "value": "/tmp/out.zip"
+    },
+    "SafeChecks": {
+      "description": "Switch. Checks for LittleSnitch or a SandBox, exit the staging process if true. Defaults to True.",
+      "required": true,
+      "value": "True"
+    },
+    "UserAgent": {
+      "description": "User-agent string to use for the staging request (default, none, or other).",
+      "required": false,
+      "value": "default"
+    }
+  }
+}

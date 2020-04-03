@@ -1,19 +1,14 @@
 from marshmallow import Schema, fields
 
-
-# TODO Duplicate of ListenerOptionSchema
-class ModuleOptionSchema(Schema):
-    Description = fields.Str()
-    Required = fields.Bool()
-    Value = fields.Str()
+from lib.api.schemas import CustomOptionSchema
 
 
 class ModuleSchema(Schema):
-    Author = fields.List(fields.Str())
-    Comments = fields.List(fields.Str())
-    Description = fields.Str()
-    Name = fields.Str()
-    options = fields.Dict(keys=fields.Str(), values=fields.Nested(ModuleOptionSchema))
+    author = fields.List(fields.Str(), attribute="Author")
+    comments = fields.List(fields.Str(), attribute="Comments")
+    description = fields.Str(attribute="Description")
+    name = fields.Str(attribute="Name")
+    options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
 
 
 class ModulesSchema(Schema):
@@ -23,14 +18,13 @@ class ModulesSchema(Schema):
 class ModuleTaskResponseSchema(Schema):
     message = fields.Str()
     task_id = fields.Str()
-    success = fields.Bool()  # Necessary? If it fails we won't be sending a 200
+    success = fields.Bool()  # todo vr Necessary? If it fails we won't be sending a 200
 
 
 class ModuleQuerySchema(Schema):
     class Meta:
-        unknown = "EXCLUDE"  # Because token
+        unknown = "EXCLUDE"  # todo vr Because token, move to header? Could also exclude unknown fields on all schemas
     query = fields.Str()
-
 
 
 class ModuleQuerySchemaRequired(Schema):

@@ -1,7 +1,7 @@
 test_name: Make sure meta endpoints work
 
 includes:
-  - !include auth_stage.yaml
+  - !include includes/auth_stage.yaml
 
 stages:
   - type: ref

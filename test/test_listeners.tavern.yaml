@@ -2,7 +2,7 @@
 test_name: Verify Listeners
 
 includes:
-  - !include auth_stage.yaml
+  - !include includes/auth_stage.yaml
 
 stages:
   - type: ref
@@ -32,13 +32,13 @@ stages:
         content-type: application/json
     response:
       status_code: 200
-      body: !include listener_options_response.json
+      body: !include includes/listener_options_response.json
 
   - name: Verify start http listener
     request:
       params:
         token: "{test_login_token}"
-      json: !include listener_start_request.json
+      json: !include includes/listener_start_request.json
       verify: false
       url: http://localhost:1337/api/listeners/http
       method: POST
@@ -46,7 +46,7 @@ stages:
         content-type: application/json
     response:
       status_code: 201
-      body: !include listener_start_response.json
+      body: !include includes/listener_start_response.json
 
   - name: Verify get listener
     request:
@@ -59,7 +59,7 @@ stages:
         content-type: application/json
     response:
       status_code: 200
-      body: !include listener_start_response.json
+      body: !include includes/listener_start_response.json
 
   - name: Verify get all listeners
     request:
