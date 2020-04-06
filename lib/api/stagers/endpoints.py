@@ -43,8 +43,9 @@ class StagerName(MethodView):
         """
         # todo Slashes in the path variable that aren't url-encoded are a nono.
         #  We should either start expecting a url-encoded string or name them differently.
+        #  Even when url encoding a / to %2f, the routing fails.
         #  https://github.com/pallets/flask/issues/900
-        stager_name = stager_name.replace('-', '/', 1)
+        stager_name = stager_name.replace('_', '/', 1)
         if stager_name not in g.main.stagers.stagers:
             abort(404, message='stager name %s not found, make sure to use [os]-[name] format, ie. windows-dll' % stager_name)
 
@@ -68,7 +69,7 @@ class StagerName(MethodView):
             StagerName      -   the stager name to generate
             Listener        -   the Listener name to use for the stager
         """
-        stager_name = stager_name.replace('-', '/', 1)
+        stager_name = stager_name.replace('_', '/', 1)
         listener = data['listener']
 
         if stager_name not in g.main.stagers.stagers:

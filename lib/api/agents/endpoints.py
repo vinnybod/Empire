@@ -77,7 +77,6 @@ class AgentName(MethodView):
         if agent_name.lower() == "all":
             agents = Session().query(models.Agent).all()
         else:
-            # Why do we check session_id?
             agents = Session().query(models.Agent).filter(or_(
                 models.Agent.name == agent_name,
                 models.Agent.session_id == agent_name
@@ -101,11 +100,9 @@ class AgentRename(MethodView):
         Renames the specified agent.
         """
         new_name = data['new_name']
-        # this matches the old logic, but idk if using like is best here.
-        # Why do we check sessionId?
         agent = Session().query(models.Agent).filter(or_(
-            models.Agent.name.like(agent_name),
-            models.Agent.session_id.like(agent_name)
+            models.Agent.name == agent_name,
+            models.Agent.session_id == agent_name
         )).first()
 
         if not agent:
@@ -134,10 +131,7 @@ class AgentShell(MethodView):
         if agent_name.lower() == "all":
             agents = Session().query(models.Agent).all()
         else:
-            # Some Q's:
-            # The old logic used like, but I think a direct match makes more sense
-            # Should we continue to check both fields?
-            # Should use use .all or .first?
+            # todo vr refactor and use .first here
             agents = Session().query(models.Agent).filter(or_(
                 models.Agent.name == agent_name,
                 models.Agent.session_id == agent_name

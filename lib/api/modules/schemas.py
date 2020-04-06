@@ -15,6 +15,11 @@ class ModulesSchema(Schema):
     modules = fields.Nested(ModuleSchema, many=True)
 
 
+class ModuleTaskRequestSchema(Schema):
+    agent = fields.Str(required=True) # todo vr min length?
+    options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
+
+
 class ModuleTaskResponseSchema(Schema):
     message = fields.Str()
     task_id = fields.Str()
@@ -27,7 +32,10 @@ class ModuleQuerySchema(Schema):
     query = fields.Str()
 
 
-class ModuleQuerySchemaRequired(Schema):
+class ModuleQueryRequiredSchema(Schema):
+    """
+    Like ModuleQuerySchema, but query is required
+    """
     class Meta:
         unknown = "EXCLUDE"  # Because token
     query = fields.Str(required=True)

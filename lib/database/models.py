@@ -56,7 +56,7 @@ class Agent(Base):
     process_id = Column(String(255), nullable=True)
     hostname = Column(String(255), nullable=True)
     os_details = Column(String(255), nullable=True)
-    session_key = Column(String(255), nullable=True)
+    session_key = Column(BLOB, nullable=True)
     nonce = Column(String(255), nullable=True)
     checkin_time = Column(String(255), nullable=True)
     lastseen_time = Column(String(255), nullable=True)
@@ -118,6 +118,7 @@ class Credential(Base):
             self.id)
 
 
+# TODO vr can we merge taskings and results tables to a single table?
 class Tasking(Base):
     __tablename__ = 'taskings'
     id = Column(Integer, Sequence("tasking_id_seq"), primary_key=True)

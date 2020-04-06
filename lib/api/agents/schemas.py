@@ -10,6 +10,7 @@ class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
         model = Agent
         include_relationships = True
         load_instance = True
+        exclude = ('session_key',)
 
     stale = fields.Bool()
 

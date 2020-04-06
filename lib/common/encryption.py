@@ -210,9 +210,9 @@ def generate_aes_key():
     """
     Generate a random new 128-bit AES key using OS' secure Random functions.
     """
-    punctuation = '!#$%&()*+,-./:;<=>?@[\]^_`{|}~'
+    punctuation = r'!#$%&()*+,-./:;<=>?@[\]^_`{|}~'
     rng = random.SystemRandom()
-    return ''.join(rng.sample(string.ascii_letters + string.digits + '!#$%&()*+,-./:;<=>?@[\]^_`{|}~', 32))
+    return ''.join(rng.sample(string.ascii_letters + string.digits + punctuation, 32))
 
 
 def rc4(key, data):

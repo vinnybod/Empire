@@ -27,7 +27,7 @@ stages:
       params:
         token: "{test_login_token}"
       verify: false
-      url: http://localhost:1337/api/stagers/osx-application
+      url: http://localhost:1337/api/stagers/osx_application
       method: GET
       headers:
         content-type: application/json
@@ -41,7 +41,7 @@ stages:
         token: "{test_login_token}"
       json: !include includes/stager_generate_request.json
       verify: false
-      url: http://localhost:1337/api/stagers/osx-launcher
+      url: http://localhost:1337/api/stagers/osx_launcher
       method: POST
       headers:
         content-type: application/json
@@ -55,7 +55,7 @@ stages:
         token: "{test_login_token}"
       json: !include includes/stager_generate_file_request.json
       verify: false
-      url: http://localhost:1337/api/stagers/osx-application
+      url: http://localhost:1337/api/stagers/osx_application
       method: POST
       headers:
         content-type: application/json
