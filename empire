@@ -8,6 +8,7 @@ import os
 import signal
 import sqlite3
 import ssl
+import subprocess
 import sys
 from time import sleep
 
@@ -451,6 +452,9 @@ if __name__ == '__main__':
 
     if args.version:
         print(empire.VERSION)
+
+    if args.reset_empire:
+        subprocess.call("./setup/reset.sh")
 
     elif args.rest:
         # start an Empire instance and RESTful API
