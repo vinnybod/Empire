@@ -252,38 +252,28 @@ class AgentResults(MethodView):
         Returns JSON describing the agent's results and removes the result field
         from the backend database.
         """
-        agent_task_results = []
         agent = Session().query(models.Agent).filter(or_(
             models.Agent.name == agent_name,
             models.Agent.session_id == agent_name
         )).first()
 
-        # Todo this can be done in SQLAlchemy
-        agent_results = execute_db_query(conn,
-                                        """
-            SELECT
-                results.id,
-                taskings.data AS command,
-                results.data AS response,
-                users.id as user_id,
-                users.username as username
-            FROM results
-            INNER JOIN taskings ON results.id = taskings.id AND results.agent = taskings.agent
-            LEFT JOIN users on results.user_id = users.id
-            WHERE results.agent=?;
-            """, [agent.session_id])
+        if agent is None:
+            return abort(400, message='agent name %s not found' % agent_name)
 
-        results = []
-        if len(agent_results) > 0:
-            for taskID, command, result, user_id, username in agent_results:
-                results.append({'taskID': taskID, 'command': command, 'results': result, 'user_id': user_id,
-                                'username': username})
+        agent_results = Session()\
+            .query(models.Result.id.label("task_id"),
+                   models.Tasking.data.label("command"),
+                   models.Result.data.label("result"),
+                   models.User.id.label("user_id"),
+                   models.User.username.label("username"))\
+            .select_from(models.Result)\
+            .join(models.Tasking,
+                  models.Tasking.id == models.Result.id and models.Tasking.agent == models.Result.agent)\
+            .outerjoin(models.User, models.Tasking.user_id == models.User.id)\
+            .filter(models.Result.agent == agent_name)\
+            .all()
 
-            agent_task_results.append({"AgentName": agent.session_id, "AgentResults": results})
-        else:
-            agent_task_results.append({"AgentName": agent.session_id, "AgentResults": []})
-
-        return {'results': agent_task_results}
+        return {'results': agent_results}
 
     @agen_blp.response(code=204)
     def delete(self, agent_name):
@@ -298,4 +288,5 @@ class AgentResults(MethodView):
         if agent is None:
             abort(404, message='agent name %s not found' % (agent_name))
 
-        execute_db_query(conn, 'UPDATE agents SET results=? WHERE session_id=?', ['', agent.session_id])
+        # TODO vr why from agents and not from results table?
+        # execute_db_query(conn, 'UPDATE agents SET results=? WHERE session_id=?', ['', agent.session_id])

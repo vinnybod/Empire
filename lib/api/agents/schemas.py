@@ -1,7 +1,7 @@
 from marshmallow import fields, Schema
 from marshmallow.validate import Length
 
-from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema
+from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema, CamelCaseSchema
 from lib.database.models import Agent
 
 
@@ -40,5 +40,13 @@ class AgentUploadSchema(Schema):
     data = fields.Str(required=True, validate=Length(min=1))
 
 
+class AgentResultSchema(CamelCaseSchema):
+    task_id = fields.Str()
+    command = fields.Str()
+    result = fields.Str()
+    user_id = fields.Str()
+    username = fields.Str()
+
+
 class AgentResultsSchema(Schema):
-    pass
+    results = fields.Nested(AgentResultSchema, many=True)
