@@ -10,7 +10,7 @@ class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
         model = Agent
         include_relationships = True
         load_instance = True
-        exclude = ('session_key',)
+        exclude = ('session_key', 'results', 'taskings', 'taskings_executed')
 
     stale = fields.Bool()
 
@@ -27,13 +27,8 @@ class AgentShellSchema(Schema):
     command = fields.Str(required=True, validate=Length(min=1))
 
 
-class AgentTaskSingleSchema(Schema):
-    task_id = fields.Str()
-    agent_name = fields.Str()
-
-
 class AgentTaskResponseSchema(Schema):
-    results = fields.Nested(AgentTaskSingleSchema, many=True)
+    task_id = fields.Str()
 
 
 class AgentDownloadSchema(Schema):

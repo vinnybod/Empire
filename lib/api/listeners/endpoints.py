@@ -45,17 +45,10 @@ class ListenerName(MethodView):
         """
         Kills the listener specified by listener_name.
         """
-        # is there a better way to do this? What if a listener was named all?
-        # Optional Param called all=true
-        if listener_name.lower() == "all":
-            listeners = Session().query(models.Listener).all()
-            for listener in listeners:
-                g.main.listeners.kill_listener(listener.name)
+        if g.main.listeners.is_listener_valid(listener_name):
+            g.main.listeners.kill_listener(listener_name)
         else:
-            if g.main.listeners.is_listener_valid(listener_name):
-                g.main.listeners.kill_listener(listener_name)
-            else:
-                abort(404, message='listener name %s not found' % listener_name)
+            abort(404, message='listener name %s not found' % listener_name)
 
 
 @lis_blp.route('/types')

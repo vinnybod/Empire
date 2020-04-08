@@ -1,6 +1,6 @@
 import time
 
-from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB, ForeignKey, PickleType
+from sqlalchemy import Column, Integer, Sequence, String, Boolean, BLOB, ForeignKey, PickleType, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship
@@ -12,9 +12,9 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
     username = Column(String(50), nullable=False)
-    password = Column(String(255), nullable=False)
+    password = Column(String, nullable=False)
     api_token = Column(String(50))
-    last_logon_time = Column(String(50))  # DateTime
+    last_logon_time = Column(String(50))  # DateTime # todo vr rename
     enabled = Column(Boolean, nullable=False)
     admin = Column(Boolean, nullable=False)
 
@@ -26,12 +26,12 @@ class User(Base):
 class Listener(Base):
     __tablename__ = 'listeners'
     id = Column(Integer, Sequence("listener_id_seq"), primary_key=True)
-    name = Column(String(255), nullable=False, unique=True)
-    module = Column(String(255), nullable=False)
-    listener_type = Column(String(255), nullable=False)
-    listener_category = Column(String(255), nullable=False)
+    name = Column(String, nullable=False, unique=True)
+    module = Column(String, nullable=False)
+    listener_type = Column(String, nullable=False)
+    listener_category = Column(String, nullable=False)
     enabled = Column(Boolean, nullable=False)
-    options = Column(PickleType, nullable=True)
+    options = Column(PickleType)
 
     def __repr__(self):
         return "<Listener(name='%s')>" % (
@@ -41,34 +41,35 @@ class Listener(Base):
 class Agent(Base):
     __tablename__ = 'agents'
     id = Column(Integer, Sequence("agent_id_seq"), primary_key=True)
-    name = Column(String(255), nullable=False)
-    listener = Column(String(255), nullable=False) # join?
-    session_id = Column(String(255), nullable=True)
-    language = Column(String(255), nullable=True)
-    language_version = Column(String(255), nullable=True)
-    delay = Column(Integer) #todo min value?
-    jitter = Column(Integer) #todo wtf is real
-    external_ip = Column(String(255), nullable=True)
-    internal_ip = Column(String(255), nullable=True)
-    username = Column(String(255), nullable=True)
-    high_integrity = Column(Integer) #min value?
-    process_name = Column(String(255), nullable=True)
-    process_id = Column(String(255), nullable=True)
-    hostname = Column(String(255), nullable=True)
-    os_details = Column(String(255), nullable=True)
-    session_key = Column(BLOB, nullable=True)
-    nonce = Column(String(255), nullable=True)
-    checkin_time = Column(String(255), nullable=True)
-    lastseen_time = Column(String(255), nullable=True)
-    parent = Column(String(255), nullable=True) #join?
-    children = Column(String(255), nullable=True) #join?
-    servers = Column(String(255), nullable=True)
-    profile = Column(String(255), nullable=True)
-    functions = Column(String(255), nullable=True)
-    kill_date = Column(String(255), nullable=True)
-    working_hours = Column(String(255), nullable=True)
+    name = Column(String, nullable=False)
+    listener = Column(String, nullable=False)  # join?
+    session_id = Column(String)
+    language = Column(String)
+    language_version = Column(String)
+    delay = Column(Integer)
+    jitter = Column(Float)
+    external_ip = Column(String)
+    internal_ip = Column(String)
+    username = Column(String)
+    high_integrity = Column(Integer)
+    process_name = Column(String)
+    process_id = Column(String)
+    hostname = Column(String)
+    os_details = Column(String)
+    session_key = Column(BLOB)
+    nonce = Column(String)
+    checkin_time = Column(String)
+    lastseen_time = Column(String)
+    parent = Column(String)
+    children = Column(String)
+    servers = Column(String)
+    profile = Column(String)
+    functions = Column(String)
+    kill_date = Column(String)
+    working_hours = Column(String)
     lost_limit = Column(Integer)
-    taskings = relationship("Tasking")
+    taskings = Column(String)  # Queue of tasks. Should refactor to manage queued tasks from the taskings table itself.
+    taskings_executed = relationship("Tasking")
     results = relationship("Result")
 
     @hybrid_property
@@ -86,15 +87,15 @@ class Agent(Base):
 
 class Config(Base):
     __tablename__ = 'config'
-    staging_key = Column(String(255), nullable=False, primary_key=True)  # TODO Revisit max length
-    install_path = Column(String(255), nullable=False)
-    ip_whitelist = Column(String(255), nullable=False)
-    ip_blacklist = Column(String(255), nullable=False)
-    autorun_command = Column(String(255), nullable=False)
-    autorun_data = Column(String(255), nullable=False)
-    rootuser = Boolean()
+    staging_key = Column(String, nullable=False, primary_key=True)  # TODO Revisit max length
+    install_path = Column(String, nullable=False)
+    ip_whitelist = Column(String, nullable=False)
+    ip_blacklist = Column(String, nullable=False)
+    autorun_command = Column(String, nullable=False)
+    autorun_data = Column(String, nullable=False)
+    rootuser = Column(Boolean, nullable=False)
     obfuscate = Column(Integer, nullable=False)
-    obfuscate_command = Column(String(255), nullable=False)
+    obfuscate_command = Column(String, nullable=False)
 
     def __repr__(self):
         return "<Config(staging_key='%s')>" % (
@@ -104,28 +105,29 @@ class Config(Base):
 class Credential(Base):
     __tablename__ = 'credentials'
     id = Column(Integer, Sequence("credential_id_seq"), primary_key=True)
-    credtype = Column(String(255), nullable=True)
-    domain = Column(String(255), nullable=True)
-    username = Column(String(255), nullable=True)
-    password = Column(String(255), nullable=True)
-    host = Column(String(255), nullable=True)
-    os = Column(String(255), nullable=True)
-    sid = Column(String(255), nullable=True)
-    notes = Column(String(255), nullable=True)
+    credtype = Column(String)
+    domain = Column(String)
+    username = Column(String)
+    password = Column(String)
+    host = Column(String)
+    os = Column(String)
+    sid = Column(String)
+    notes = Column(String)
 
     def __repr__(self):
         return "<Credential(id='%s')>" % (
             self.id)
 
 
-# TODO vr can we merge taskings and results tables to a single table?
+# TODO vr I'd like to merge taskings and results to a single table
+#  and get rid of the json queue array on Agent.
 class Tasking(Base):
     __tablename__ = 'taskings'
-    id = Column(Integer, Sequence("tasking_id_seq"), primary_key=True)
-    agent = Column(String(255), ForeignKey('agents.id'), primary_key=True)
-    data = Column(String, nullable=True)
-    user_id = Column(String(255), ForeignKey('users.id'), nullable=True)
-    time_stamp = Column(String(255))  # TODO Dates?
+    id = Column(Integer, primary_key=True)
+    agent = Column(String, ForeignKey('agents.id'), primary_key=True)
+    data = Column(String)
+    user_id = Column(String, ForeignKey('users.id'))
+    time_stamp = Column(String)  # TODO Dates?
 
     def __repr__(self):
         return "<Tasking(id='%s')>" % (
@@ -134,10 +136,10 @@ class Tasking(Base):
 
 class Result(Base):
     __tablename__ = 'results'
-    id = Column(Integer, Sequence("result_id_seq"), primary_key=True)
-    agent = Column(String(255), ForeignKey('agents.id'), primary_key=True)
-    data = Column(String, nullable=True)
-    user_id = Column(String(255))
+    id = Column(Integer, primary_key=True)  # Current implementation requires this to match Tasking's id
+    agent = Column(String, ForeignKey('agents.id'), primary_key=True)
+    data = Column(String)
+    user_id = Column(String)
 
     def __repr__(self):
         return "<Result(id='%s')>" % (
