@@ -1,5 +1,5 @@
 {
-  "listener_options": {
+  "options": {
     "BindIP": {
       "description": "The IP to bind to on the control server.",
       "required": true,

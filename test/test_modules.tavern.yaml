@@ -4,19 +4,21 @@ includes:
   - !include includes/auth_stage.yaml
   - !include includes/listener_stage.yaml
 
+# TODO vr sTest more of the endpoints.
+
 stages:
   - type: ref
     id: login_get_token
   - type: ref
     id: start_http_listener
-  - name: Verify a module returns
+  - name: Verify modules returns
     request:
       verify: false
-      url: http://localhost:1337/api/modules/ # todo need to take slashes out of names just like stagers...
+      url: http://localhost:1337/api/modules/
       method: GET
       headers:
         content-type: application/json
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body: [] # todo vrs
+      json: [] # todo vr

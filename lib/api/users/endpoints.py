@@ -30,7 +30,7 @@ class UsersView(MethodView):
 
     @requires_admin
     @user_blp.arguments(CreateUserInputSchema)
-    @user_blp.response(UserSchema, code=201)
+    @user_blp.response(UserSchema(exclude=("api_token",)), code=201)
     def post(self, new_data):
         """
         Add a new user

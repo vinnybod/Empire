@@ -1,11 +1,11 @@
 from marshmallow import Schema, fields
 from marshmallow.validate import Length
 
-from lib.api.schemas import CustomOptionSchema
+from lib.api.schemas import CustomOptionSchema, EmpireBaseSchema
 from lib.api.validators import validate_agent
 
 
-class ModuleSchema(Schema):
+class ModuleSchema(EmpireBaseSchema):
     author = fields.List(fields.Str(), attribute="Author")
     comments = fields.List(fields.Str(), attribute="Comments")
     description = fields.Str(attribute="Description")
@@ -13,7 +13,7 @@ class ModuleSchema(Schema):
     options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
 
 
-class ModulesSchema(Schema):
+class ModulesSchema(EmpireBaseSchema):
     modules = fields.Nested(ModuleSchema, many=True)
 
 

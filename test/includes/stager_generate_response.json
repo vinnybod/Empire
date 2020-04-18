@@ -32,5 +32,5 @@
     }
   },
   "output": !anystr ,
-  "stager_name": "osx/launcher"
+  "stagerName": "osx/launcher"
 }

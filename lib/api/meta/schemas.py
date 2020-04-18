@@ -1,15 +1,15 @@
-from marshmallow import Schema, fields
+from marshmallow import fields
 
-from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema
+from lib.api.schemas import EmpireBaseSqlAlchemySchema, EmpireBaseSchema
 from lib.database.models import Config
 
 
-class ConfigSchema(CamelCaseSqlAlchemyAutoSchema):
+class ConfigSchema(EmpireBaseSqlAlchemySchema):
     class Meta:
         model = Config
         include_relationships = True
         load_instance = True
 
 
-class VersionSchema(Schema):
+class VersionSchema(EmpireBaseSchema):
     version = fields.Str()

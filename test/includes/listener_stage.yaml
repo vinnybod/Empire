@@ -13,7 +13,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 201
-      body: !include listener_start_response.json
+      json: !include listener_start_response.json
       save:
-        body:
+        json:
           listener_name: name

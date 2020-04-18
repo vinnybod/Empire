@@ -16,7 +16,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body:
+      json:
         version: 4.0.0 Beta
 
   - name: Make sure config is returned
@@ -28,8 +28,10 @@ stages:
         content-type: application/json
         x-api-key: "{test_login_token}"
     response:
+      strict:
+        - json:off
       status_code: 200
-      body:
+      json:
         stagingKey: !anystr
         ipBlacklist: ''
         ipWhitelist: ''

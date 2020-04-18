@@ -74,7 +74,7 @@ class ListenerType(MethodView):
             abort(404, message='listener type %s not found' % listener_type)
 
         options = g.main.listeners.loadedListeners[listener_type].options
-        return {'listener_options': options}
+        return {'options': options}
 
 
 @lis_blp.route('/<string:listener_type>')

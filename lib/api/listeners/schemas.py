@@ -1,14 +1,14 @@
-from marshmallow import Schema, fields
+from marshmallow import fields
 
-from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema, CustomOptionSchema
+from lib.api.schemas import EmpireBaseSqlAlchemySchema, CustomOptionSchema, EmpireBaseSchema
 from lib.database.models import Listener
 
 
-class ListenerOptionsSchema(Schema):
-    listener_options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
+class ListenerOptionsSchema(EmpireBaseSchema):
+    options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
 
 
-class ListenerSchema(CamelCaseSqlAlchemyAutoSchema):
+class ListenerSchema(EmpireBaseSqlAlchemySchema):
     class Meta:
         model = Listener
         include_relationships = True
@@ -17,13 +17,13 @@ class ListenerSchema(CamelCaseSqlAlchemyAutoSchema):
     options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
 
 
-class ListenersSchema(CamelCaseSqlAlchemyAutoSchema):
+class ListenersSchema(EmpireBaseSchema):
     listeners = fields.Nested(ListenerSchema, many=True)
 
 
-class ListenerTypeSchema(Schema):
+class ListenerTypeSchema(EmpireBaseSchema):
     types = fields.List(fields.Str)
 
 
-class ListenerStartRequestSchema(Schema):
+class ListenerStartRequestSchema(EmpireBaseSchema):
     options = fields.Dict(keys=fields.Str(), values=fields.Str())

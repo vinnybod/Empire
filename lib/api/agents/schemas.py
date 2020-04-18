@@ -1,11 +1,11 @@
-from marshmallow import fields, Schema
+from marshmallow import fields
 from marshmallow.validate import Length
 
-from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema, CamelCaseSchema
+from lib.api.schemas import EmpireBaseSqlAlchemySchema, EmpireBaseSchema
 from lib.database.models import Agent
 
 
-class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
+class AgentSchema(EmpireBaseSqlAlchemySchema):
     class Meta:
         model = Agent
         include_relationships = True
@@ -15,32 +15,32 @@ class AgentSchema(CamelCaseSqlAlchemyAutoSchema):
     stale = fields.Bool()
 
 
-class AgentsSchema(Schema):
+class AgentsSchema(EmpireBaseSchema):
     agents = fields.Nested(AgentSchema, many=True)
 
 
-class AgentRenameSchema(Schema):
+class AgentRenameSchema(EmpireBaseSchema):
     new_name = fields.Str(required=True, validate=Length(min=1))
 
 
-class AgentShellSchema(Schema):
+class AgentShellSchema(EmpireBaseSchema):
     command = fields.Str(required=True, validate=Length(min=1))
 
 
-class AgentTaskResponseSchema(Schema):
+class AgentTaskResponseSchema(EmpireBaseSchema):
     task_id = fields.Str()
 
 
-class AgentDownloadSchema(Schema):
+class AgentDownloadSchema(EmpireBaseSchema):
     filename = fields.Str(required=True, validate=Length(min=1))
 
 
-class AgentUploadSchema(Schema):
+class AgentUploadSchema(EmpireBaseSchema):
     filename = fields.Str(required=True, validate=Length(min=1))
     data = fields.Str(required=True, validate=Length(min=1))
 
 
-class AgentResultSchema(CamelCaseSchema):
+class AgentResultSchema(EmpireBaseSchema):
     task_id = fields.Str()
     command = fields.Str()
     result = fields.Str()
@@ -48,5 +48,5 @@ class AgentResultSchema(CamelCaseSchema):
     username = fields.Str()
 
 
-class AgentResultsSchema(Schema):
+class AgentResultsSchema(EmpireBaseSchema):
     results = fields.Nested(AgentResultSchema, many=True)

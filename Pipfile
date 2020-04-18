@@ -4,6 +4,9 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
+tavern = "*"
+pylint = "*"
 
 [packages]
 urllib3 = "*"
@@ -25,12 +28,11 @@ PyInstaller = "*"
 zlib_wrapper = "*"
 M2Crypto = "*"
 Jinja2 = "*"
-pylint = "*"
 sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
 flask-smorest = "*"
-tavern = "*"
 pycryptodome = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.7"

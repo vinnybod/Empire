@@ -57,7 +57,7 @@ class ModuleName(MethodView):
         if module_slug not in g.main.modules.slug_mappings:
             abort(404, message='module name %s not found' % module_slug)
 
-        return get_module_info(module_slug)
+        return get_module_info_from_slug(module_slug)
 
     @modu_blp.arguments(ModuleTaskRequestSchema)
     @modu_blp.response(ModuleTaskResponseSchema, code=201)
@@ -171,7 +171,12 @@ class ModuleName(MethodView):
 
 
 def get_module_info(module_name):
-    module_info = copy.deepcopy(g.main.modules.modules[g.main.modules.name_from_slug(module_name)].info)
+    module_info = copy.deepcopy(g.main.modules.modules[module_name].info)
     module_info['options'] = g.main.modules.modules[module_name].options
     module_info['Name'] = module_name
     return module_info
+
+
+def get_module_info_from_slug(module_slug):
+    module_name = g.main.modules.name_from_slug(module_slug)
+    return get_module_info(module_name)

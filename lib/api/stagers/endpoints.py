@@ -33,7 +33,7 @@ class StagerView(MethodView):
         return {'stagers': stagers}
 
 
-@sta_blp.route('/<string:stager_name>')
+@sta_blp.route('/<string:stager_slug>')
 class StagerName(MethodView):
 
     @sta_blp.response(StagerSchema, code=200)
@@ -42,7 +42,7 @@ class StagerName(MethodView):
         Returns JSON describing the specified stager_name passed.
         """
         if stager_slug not in g.main.stagers.slug_mappings:
-            abort(404, message='stager name %s not found, make sure to use [os]-[name] format, ie. windows-dll' % stager_name)
+            abort(404, message='stager name %s not found, make sure to use [os]-[name] format, ie. windows-dll' % stager_slug)
 
         name = g.main.stagers.slug_mappings[stager_slug]
         stager = g.main.stagers.stagers[name]
@@ -65,7 +65,7 @@ class StagerName(MethodView):
         listener = data['listener']
 
         if stager_slug not in g.main.stagers.slug_mappings:
-            abort(400, message='stager name %s not found, make sure to use [os]-[name] format, ie. windows-dll' % stager_name)
+            abort(400, message='stager name %s not found, make sure to use [os]-[name] format, ie. windows-dll' % stager_slug)
 
         if not g.main.listeners.is_listener_valid(listener):
             return abort(400, message='invalid listener ID or name')

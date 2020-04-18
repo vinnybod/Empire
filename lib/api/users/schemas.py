@@ -1,11 +1,11 @@
 from marshmallow import Schema, fields
 from marshmallow.validate import Length
 
-from lib.api.schemas import CamelCaseSqlAlchemyAutoSchema
+from lib.api.schemas import EmpireBaseSqlAlchemySchema, EmpireBaseSchema
 from lib.database.models import User
 
 
-class UserSchema(CamelCaseSqlAlchemyAutoSchema):
+class UserSchema(EmpireBaseSqlAlchemySchema):
     class Meta:
         model = User
         include_relationships = True
@@ -13,20 +13,20 @@ class UserSchema(CamelCaseSqlAlchemyAutoSchema):
         exclude = ('password',)
 
 
-class DisableUserInputSchema(Schema):
+class DisableUserInputSchema(EmpireBaseSchema):
     disable = fields.Bool(required=True)
 
 
-class CreateUserInputSchema(Schema):
+class CreateUserInputSchema(EmpireBaseSchema):
     username = fields.Str(required=True)
     password = fields.Str(required=True, validate=Length(min=5))
 
 
-class UpdatePasswordInputSchema(Schema):
+class UpdatePasswordInputSchema(EmpireBaseSchema):
     password = fields.Str(required=True, validate=Length(min=5))
 
 
-class LoginInputSchema(Schema):
+class LoginInputSchema(EmpireBaseSchema):
     username = fields.Str(required=True)
     password = fields.Str(required=True)
 

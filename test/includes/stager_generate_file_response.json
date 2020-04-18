@@ -42,5 +42,5 @@
     }
   },
   "output": !anystr ,
-  "stager_name": "osx/application"
+  "stagerName": "osx/application"
 }

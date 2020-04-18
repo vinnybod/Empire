@@ -16,7 +16,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body: {
+      json: {
         "admin": true,
         "enabled": true,
         "id": 1,
@@ -38,7 +38,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 201
-      body: {
+      json: {
         "admin": false,
         "enabled": true,
         "id": 2,
@@ -56,7 +56,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body: !include includes/users_response.json
+      json: !include includes/users_response.json
       # redo as { users: [] }
 
   - name: Verify Get User by Id
@@ -69,7 +69,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body: {
+      json: {
         "admin": false,
         "enabled": true,
         "id": 2,
@@ -99,8 +99,10 @@ stages:
         content-type: application/json
         x-api-key: "{test_login_token}"
     response:
+      strict:
+        - json:off
       status_code: 200
-      body:
+      json:
         enabled: false
 
   - name: Verify Enable User
@@ -125,8 +127,10 @@ stages:
         content-type: application/json
         x-api-key: "{test_login_token}"
     response:
+      strict:
+        - json:off
       status_code: 200
-      body:
+      json:
         enabled: true
 
   - name: Verify Password Change

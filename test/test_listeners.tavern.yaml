@@ -18,7 +18,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body: {'types': ['http_hop', 'http_foreign', 'redirector', 'http_com', 'meterpreter', 'onedrive', 'http', 'dbx', 'http_mapi']}
+      json: {'types': ['http_hop', 'http_foreign', 'redirector', 'http_com', 'meterpreter', 'onedrive', 'http', 'dbx', 'http_mapi']}
 
   - name: Verify listener options http
     request:
@@ -30,7 +30,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body: !include includes/listener_options_response.json
+      json: !include includes/listener_options_response.json
 
   - name: Verify start http listener
     request:
@@ -43,7 +43,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 201
-      body: !include includes/listener_start_response.json
+      json: !include includes/listener_start_response.json
 
   - name: Verify get listener
     request:
@@ -55,7 +55,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body: !include includes/listener_start_response.json
+      json: !include includes/listener_start_response.json
 
   - name: Verify get all listeners
     request:
@@ -67,7 +67,7 @@ stages:
         x-api-key: "{test_login_token}"
     response:
       status_code: 200
-      body: { "listeners": !anylist }
+      json: { "listeners": !anylist }
 
   - name: Verify delete listener
     request:
