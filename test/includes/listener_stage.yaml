@@ -4,14 +4,13 @@ stages:
   - id: start_http_listener
     name: Start http listener
     request:
-      params:
-        token: "{test_login_token}"
       json: !include listener_start_request.json
       verify: false
       url: http://localhost:1337/api/listeners/http
       method: POST
       headers:
         content-type: application/json
+        x-api-key: "{test_login_token}"
     response:
       status_code: 201
       body: !include listener_start_response.json

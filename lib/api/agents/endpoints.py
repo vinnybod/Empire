@@ -205,7 +205,7 @@ class AgentUpload(MethodView):
 @agen_blp.route('/<string:agent_name>/kill')
 class AgentKill(MethodView):
 
-    @agen_blp.response(AgentTaskResponseSchema, code=201)
+    @agen_blp.response(AgentTaskResponseSchema, code=204)
     def post(self, agent_name):  # Was a post in the original, maybe should be delete
         """
         Tasks the specified agent to exit.
@@ -227,7 +227,7 @@ class AgentKill(MethodView):
 @agen_blp.route('/<string:agent_name>/clear')
 class AgentClear(MethodView):
 
-    @agen_blp.response(code=201)
+    @agen_blp.response(code=204)
     def post(self, agent_name):
         """
         Clears the tasking buffer for the specified agent.

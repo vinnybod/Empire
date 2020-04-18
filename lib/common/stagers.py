@@ -17,6 +17,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import division
 
+import re
 from builtins import chr
 from builtins import zip
 from builtins import str
@@ -48,6 +49,9 @@ class Stagers(object):
         #     [ ("stager_name", instance) ]
         self.stagers = {}
 
+        # map a slug to a stager name
+        self.slug_mappings = {}
+
         self.load_stagers()
 
 
@@ -77,7 +81,21 @@ class Stagers(object):
                 mod = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
                 self.stagers[stagerName] = mod.Stager(self.mainMenu, [])
+                self.slug_mappings[self.slug_from_name(stagerName)] = stagerName
 
+    @staticmethod
+    def slug_from_name(module_name: str) -> str:
+        # todo vr generify this so its not duplicate code from modules.py
+        """
+        Replace all underscores, spaces, and slashes with hyphens and lowercase the entire name
+        to create a slugified version of the module name that is safe to send in path parameters to the api
+        :param module_name: the modules full name ie python/collection/osx/browser_dump
+        :return: slugified name ie python-collection-osx-browser-dump
+        """
+        return re.sub(r"[\s_/]", '-', module_name).lower()
+
+    def name_from_slug(self, slug: str) -> str:
+        return self.slug_mappings[slug]
 
     def set_stager_option(self, option, value):
         """

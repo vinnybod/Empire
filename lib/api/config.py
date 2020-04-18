@@ -13,8 +13,8 @@ class FlaskConfig:
                 {
                     "ApiKeyAuth": {
                         "type": "apiKey",
-                        "in": "query",
-                        "name": "token"
+                        "in": "header",
+                        "name": "X-API-KEY"
                     }
                 }
         }

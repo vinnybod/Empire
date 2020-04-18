@@ -1,7 +1,7 @@
 from marshmallow import Schema, fields
-from marshmallow.validate import Length
 
 from lib.api.schemas import CustomOptionSchema
+from lib.api.validators import validate_listener
 
 
 class StagerSchema(Schema):
@@ -17,7 +17,7 @@ class StagersSchema(Schema):
 
 
 class GenerateStagerSchema(Schema):
-    listener = fields.Str(required=True, validate=Length(min=1))
+    listener = fields.Str(required=True, validate=validate_listener)
     options = fields.Dict(keys=fields.Str(), values=fields.Str(), required=True)
 
 

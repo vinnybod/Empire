@@ -152,9 +152,10 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         Before every request, check if a valid token is passed along with the request.
         """
         try:
-            if request.path != '/api/users/login' and not request.path.startswith('/doc'):
-                token = request.args.get('token')
-                user = Users.get_user_from_token(token)
+            if request.path == '/api/users/login' or request.path.startswith('/doc'):
+                pass
+            elif 'X-API-KEY' in request.headers:
+                user = Users.get_user_from_token(request.headers.get('X-API-KEY'))
                 if user:
                     g.user = user
                     # I don't love this, but its a way to get access to the correct instances from the blueprints.
@@ -164,6 +165,8 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
                     g.main = main
                 else:
                     return make_response('', 401)
+            else:
+                return make_response('', 401)
         except:
             return make_response('', 401)
 

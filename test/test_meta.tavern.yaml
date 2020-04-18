@@ -8,13 +8,12 @@ stages:
     id: login_get_token
   - name: Make sure version is returned
     request:
-      params:
-        token: "{test_login_token}"
       verify: false
       url: http://localhost:1337/api/meta/version
       method: GET
       headers:
         content-type: application/json
+        x-api-key: "{test_login_token}"
     response:
       status_code: 200
       body:
@@ -22,13 +21,12 @@ stages:
 
   - name: Make sure config is returned
     request:
-      params:
-        token: "{test_login_token}"
       verify: false
       url: http://localhost:1337/api/meta/config
       method: GET
       headers:
         content-type: application/json
+        x-api-key: "{test_login_token}"
     response:
       status_code: 200
       body:

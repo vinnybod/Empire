@@ -1,6 +1,8 @@
 from marshmallow import Schema, fields
+from marshmallow.validate import Length
 
 from lib.api.schemas import CustomOptionSchema
+from lib.api.validators import validate_agent
 
 
 class ModuleSchema(Schema):
@@ -16,7 +18,8 @@ class ModulesSchema(Schema):
 
 
 class ModuleTaskRequestSchema(Schema):
-    agent = fields.Str(required=True) # todo vr min length?
+    agent = fields.Str(required=True, validate=validate_agent)
+    other = fields.Str(required=True, validate=Length(min=1))
     options = fields.Dict(keys=fields.Str(), values=fields.Nested(CustomOptionSchema))
 
 
@@ -29,6 +32,7 @@ class ModuleTaskResponseSchema(Schema):
 class ModuleQuerySchema(Schema):
     class Meta:
         unknown = "EXCLUDE"  # todo vr Because token, move to header? Could also exclude unknown fields on all schemas
+
     query = fields.Str()
 
 
@@ -36,6 +40,8 @@ class ModuleQueryRequiredSchema(Schema):
     """
     Like ModuleQuerySchema, but query is required
     """
+
     class Meta:
         unknown = "EXCLUDE"  # Because token
+
     query = fields.Str(required=True)

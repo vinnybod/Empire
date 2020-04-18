@@ -6,7 +6,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint
 
 from lib.api.modules.schemas import ModuleSchema, ModulesSchema, ModuleTaskResponseSchema, \
-    ModuleQueryRequiredSchema, ModuleQuerySchema, ModuleTaskRequestSchema
+    ModuleQuerySchema, ModuleTaskRequestSchema
 from lib.common import helpers
 
 modu_blp = Blueprint(
@@ -25,6 +25,8 @@ class ModuleView(MethodView):
         Returns JSON describing all currently loaded modules.
         Optionally, can filter by description, comment, name, and author with the query param.
         """
+        # in the future we could do something like. ?query=fuzzysearch&language=powershell&needsAdmin=true
+        # for now lets keep it simple stupid
         modules = []
         for module_name, module in g.main.modules.modules.items():
             if 'query' in data:
@@ -40,32 +42,33 @@ class ModuleView(MethodView):
         return {'modules': modules}
 
 
-@modu_blp.route('/<string:module_name>')
+@modu_blp.route('/<string:module_slug>')
 class ModuleName(MethodView):
 
     @modu_blp.response(ModuleSchema, code=200)
-    def get(self, module_name):
+    def get(self, module_slug):
         """
         Returns JSON describing the specified currently module.
         """
-        module_name = module_name.replace('_', '/', 2)
-        if module_name not in g.main.modules.modules:
-            abort(404, message='module name %s not found' % module_name)
+        # Why we slug: https://github.com/pallets/flask/issues/2507
+        # Slashes in the path variable that aren't url-encoded are a nono.
+        # Even when url encoding a / to %2f, the routing fails.
+        # https://github.com/pallets/flask/issues/900
+        if module_slug not in g.main.modules.slug_mappings:
+            abort(404, message='module name %s not found' % module_slug)
 
-        return get_module_info(module_name)
+        return get_module_info(module_slug)
 
-    # todo arguments
     @modu_blp.arguments(ModuleTaskRequestSchema)
     @modu_blp.response(ModuleTaskResponseSchema, code=201)
-    def post(self, data, module_name):
+    def post(self, data, module_slug):
         """
         Executes a given module name with the specified parameters.
         """
-        module_name = module_name.replace('_', '/', 2)
-        if module_name not in g.main.modules.modules:
-            return abort(400, message='module name %s not found' % module_name)
+        if module_slug not in g.main.modules.slug_mappings:
+            return abort(400, message='module name %s not found' % module_slug)
 
-        module = g.main.modules.modules[module_name]
+        module = g.main.modules.modules[g.main.modules.name_from_slug(module_slug)]
 
         # set all passed module options
         for key, value in data['options'].items():
@@ -126,7 +129,7 @@ class ModuleName(MethodView):
             if extension and extension != "":
                 # if this module needs to save its file output to the server
                 #   format- [15 chars of prefix][5 chars extension][data]
-                save_file_prefix = module_name.split("/")[-1]
+                save_file_prefix = g.modules.name_from_slug(module_slug).split("/")[-1]
                 module_data = save_file_prefix.rjust(15) + extension.rjust(5) + module_data
                 task_command = "TASK_CMD_JOB_SAVE"
             else:
@@ -138,7 +141,7 @@ class ModuleName(MethodView):
             if module.info['OutputExtension'] and module.info['OutputExtension'] != "":
                 # if this module needs to save its file output to the server
                 #   format- [15 chars of prefix][5 chars extension][data]
-                save_file_prefix = module_name.split("/")[-1][:15]
+                save_file_prefix = g.modules.name_from_slug(module_slug).split("/")[-1][:15]
                 module_data = save_file_prefix.rjust(15) + extension.rjust(5) + module_data
                 task_command = "TASK_CMD_WAIT_SAVE"
             else:
@@ -148,10 +151,10 @@ class ModuleName(MethodView):
             for agent in g.main.agents.get_agents():
                 session_id = agent[1]
                 task_id = g.main.agents.add_agent_task_db(session_id, task_command, module_data, uid=g.user.id)
-                msg = "tasked agent %s to run module %s" % (session_id, module_name)
+                msg = "tasked agent %s to run module %s" % (session_id, module_slug)
                 g.main.agents.save_agent_log(session_id, msg)
 
-            msg = "tasked all agents to run module %s" % module_name
+            msg = "tasked all agents to run module %s" % module_slug
 
             # todo vr should this be a list of task ids and messages?
             return {'success': True, 'task_id': task_id, 'message': msg}
@@ -161,86 +164,14 @@ class ModuleName(MethodView):
             task_id = g.main.agents.add_agent_task_db(session_id, task_command, module_data, uid=g.user.id)
 
             # update the agent log
-            msg = "tasked agent %s to run module %s" % (session_id, module_name)
+            msg = "tasked agent %s to run module %s" % (session_id, module_slug)
             g.main.agents.save_agent_log(session_id, msg)
 
             return {'success': True, 'task_id': task_id, 'message': msg}
 
 
-@modu_blp.route('/filter/name')
-class ModuleFilterByName(MethodView):
-
-    @modu_blp.arguments(ModuleQueryRequiredSchema, location='query')
-    @modu_blp.response(ModulesSchema, code=200)
-    def get(self, data):
-        """
-          Search the modules with a query on name
-          """
-        modules = []
-        query = data['query'].lower()
-        for module_name, module in g.main.modules.modules.items():
-            if query in module_name.lower():
-                modules.append(get_module_info(module_name))
-
-        return {'modules': modules}
-
-
-@modu_blp.route('/filter/author')
-class ModuleFilterByAuthor(MethodView):
-
-    @modu_blp.arguments(ModuleQueryRequiredSchema, location='query')
-    @modu_blp.response(ModulesSchema, code=200)
-    def get(self, data):
-        """
-          Search the modules with a query on author
-          """
-        modules = []
-        query = data['query'].lower()
-        for module_name, module in g.main.modules.modules.items():
-            if query in ("".join(module.info['Author'])).lower():
-                modules.append(get_module_info(module_name))
-
-        return {'modules': modules}
-
-
-@modu_blp.route('/filter/comments')
-class ModuleFilterByComments(MethodView):
-
-    @modu_blp.arguments(ModuleQueryRequiredSchema, location='query')
-    @modu_blp.response(ModulesSchema, code=200)
-    def get(self, data):
-        """
-          Search the modules with a query on comments
-          """
-        modules = []
-        query = data['query'].lower()
-        for module_name, module in g.main.modules.modules.items():
-            if query in ("".join(module.info['Comments'])).lower():
-                modules.append(get_module_info(module_name))
-
-        return {'modules': modules}
-
-
-@modu_blp.route('/filter/description')
-class ModuleFilterByDescription(MethodView):
-
-    @modu_blp.arguments(ModuleQueryRequiredSchema, location='query')
-    @modu_blp.response(ModulesSchema, code=200)
-    def get(self, data):
-        """
-          Search the modules with a query on description
-          """
-        modules = []
-        query = data['query'].lower()
-        for module_name, module in g.main.modules.modules.items():
-            if query in ("".join(module.info['Description'])).lower():
-                modules.append(get_module_info(module_name))
-
-        return {'modules': modules}
-
-
 def get_module_info(module_name):
-    module_info = copy.deepcopy(g.main.modules.modules[module_name].info)
+    module_info = copy.deepcopy(g.main.modules.modules[g.main.modules.name_from_slug(module_name)].info)
     module_info['options'] = g.main.modules.modules[module_name].options
     module_info['Name'] = module_name
     return module_info

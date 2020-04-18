@@ -37,30 +37,23 @@ class StagerView(MethodView):
 class StagerName(MethodView):
 
     @sta_blp.response(StagerSchema, code=200)
-    def get(self, stager_name):
+    def get(self, stager_slug):
         """
         Returns JSON describing the specified stager_name passed.
         """
-        # todo Slashes in the path variable that aren't url-encoded are a nono.
-        #  We should either start expecting a url-encoded string or name them differently.
-        #  Even when url encoding a / to %2f, the routing fails.
-        #  https://github.com/pallets/flask/issues/900
-        stager_name = stager_name.replace('_', '/', 1)
-        if stager_name not in g.main.stagers.stagers:
+        if stager_slug not in g.main.stagers.slug_mappings:
             abort(404, message='stager name %s not found, make sure to use [os]-[name] format, ie. windows-dll' % stager_name)
 
-        for name, stager in g.main.stagers.stagers.items():
-            if name == stager_name:
-                info = copy.deepcopy(stager.info)
-                info['options'] = stager.options
-                info['Name'] = name
-                return info
-
-        return {}
+        name = g.main.stagers.slug_mappings[stager_slug]
+        stager = g.main.stagers.stagers[name]
+        info = copy.deepcopy(stager.info)
+        info['options'] = stager.options
+        info['Name'] = name
+        return info
 
     @sta_blp.arguments(GenerateStagerSchema)
     @sta_blp.response(GenerateStagerResponseSchema, code=200)
-    def post(self, data, stager_name):
+    def post(self, data, stager_slug):
         """
         Generates a stager with the supplied config and returns JSON information
         describing the generated stager, with 'Output' being the stager output.
@@ -69,16 +62,16 @@ class StagerName(MethodView):
             StagerName      -   the stager name to generate
             Listener        -   the Listener name to use for the stager
         """
-        stager_name = stager_name.replace('_', '/', 1)
         listener = data['listener']
 
-        if stager_name not in g.main.stagers.stagers:
+        if stager_slug not in g.main.stagers.slug_mappings:
             abort(400, message='stager name %s not found, make sure to use [os]-[name] format, ie. windows-dll' % stager_name)
 
         if not g.main.listeners.is_listener_valid(listener):
             return abort(400, message='invalid listener ID or name')
 
-        stager = g.main.stagers.stagers[stager_name]
+        name = g.main.stagers.slug_mappings[stager_slug]
+        stager = g.main.stagers.stagers[name]
 
         # set all passed options
         for option, values in data['options'].items():
@@ -105,4 +98,4 @@ class StagerName(MethodView):
             # otherwise return the text of the stager generation
             output = stager.generate()
 
-        return {'stager_name': stager_name, 'output': output, 'options': stager_options}
+        return {'stager_name': name, 'output': output, 'options': stager_options}

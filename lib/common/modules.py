@@ -9,6 +9,7 @@ install path in the common config.
 from __future__ import print_function
 from __future__ import absolute_import
 
+import re
 from builtins import object
 import fnmatch
 import os
@@ -30,6 +31,9 @@ class Modules(object):
         # module format:
         #     [ ("module/name", instance) ]
         self.modules = {}
+
+        # map a slug to a module name
+        self.slug_mappings = {}
 
         self.load_modules()
 
@@ -64,6 +68,20 @@ class Modules(object):
                 mod = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(mod)
                 self.modules[moduleName] = mod.Module(self.mainMenu, [])
+                self.slug_mappings[self.slug_from_name(moduleName)] = moduleName
+
+    @staticmethod
+    def slug_from_name(module_name: str) -> str:
+        """
+        Replace all underscores, spaces, and slashes with hyphens and lowercase the entire name
+        to create a slugified version of the module name that is safe to send in path parameters to the api
+        :param module_name: the modules full name ie python/collection/osx/browser_dump
+        :return: slugified name ie python-collection-osx-browser-dump
+        """
+        return re.sub(r"[\s_/]", '-', module_name).lower()
+
+    def name_from_slug(self, slug: str) -> str:
+        return self.slug_mappings[slug]
 
     def reload_module(self, moduleToReload):
         """
