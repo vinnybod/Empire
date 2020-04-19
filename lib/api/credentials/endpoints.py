@@ -5,16 +5,16 @@ from lib.api.credentials.schemas import CredentialsSchema
 from lib.database import models
 from lib.database.base import Session
 
-meta_blp = Blueprint(
+cred_blp = Blueprint(
     'credentials', 'credentials', url_prefix='/api/credentials',
     description='Operations on credentials'
 )
 
 
-@meta_blp.route('/')
+@cred_blp.route('/')
 class CredentialView(MethodView):
 
-    @meta_blp.response(CredentialsSchema, code=200)
+    @cred_blp.response(CredentialsSchema, code=200)
     def get(self):
         """
         Returns JSON describing the credentials stored in the backend database.

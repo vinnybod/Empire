@@ -20,9 +20,11 @@ from flask_smorest import Api
 from lib import arguments
 from lib.api.agents.endpoints import agen_blp
 from lib.api.config import FlaskConfig
+from lib.api.credentials.endpoints import cred_blp
 from lib.api.listeners.endpoints import lis_blp
 from lib.api.meta.endpoints import meta_blp
 from lib.api.modules.endpoints import modu_blp
+from lib.api.reports.endpoints import repo_blp
 from lib.api.stagers.endpoints import sta_blp
 from lib.api.users.endpoints import user_blp
 from lib.common import empire, helpers
@@ -88,12 +90,6 @@ def execute_db_query(conn, query, args=None):
 #    ----     ---                                                   ------
 #    POST     http://localhost:1337/api/creds                       add creds to the database
 #
-#    GET      http://localhost:1337/api/reporting                   return all logged events
-#    GET      http://localhost:1337/api/reporting/agent/X           return all logged events for the given agent name X
-#    GET      http://localhost:1337/api/reporting/type/Y            return all logged events of type Y (checkin, task, result, rename)
-#    GET      http://localhost:1337/api/reporting/msg/Z             return all logged events matching message Z, wildcards accepted
-#
-#
 #    GET      http://localhost:1337/api/admin/restart               restart the RESTful API
 #    GET      http://localhost:1337/api/admin/shutdown              shutdown the RESTful API
 #
@@ -119,6 +115,8 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     api.register_blueprint(sta_blp)
     api.register_blueprint(modu_blp)
     api.register_blueprint(agen_blp)
+    api.register_blueprint(cred_blp)
+    api.register_blueprint(repo_blp)
 
     conn = database_connect()
 
@@ -251,111 +249,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
         return jsonify({'success': '%s credentials added' % len(creds)})
 
-    @app.route('/api/reporting', methods=['GET'])
-    def get_reporting():
-        """
-        Returns JSON describing the reporting events from the backend database.
-        """
-        reportingRaw = execute_db_query(conn, '''
-        SELECT
-                reporting.time_stamp,
-                event_type,
-                u.username,
-                substr(reporting.name, pos+1) as agent_name,
-                a.hostname,
-                taskID,
-                t.data as "Task",
-                r.data as "Results"
-            FROM
-            (
-                SELECT
-                    time_stamp,
-                    event_type,
-                    name,
-                    instr(name, '/') as pos,
-                    taskID
-                FROM reporting
-                WHERE name LIKE 'agent%'
-                AND reporting.event_type == 'task' OR reporting.event_type == 'checkin') reporting
-                LEFT OUTER JOIN taskings t on (reporting.taskID = t.id) AND (agent_name = t.agent)
-                LEFT OUTER JOIN results r on (reporting.taskID = r.id) AND (agent_name = r.agent)
-                JOIN agents a on agent_name = a.session_id
-                LEFT OUTER JOIN users u on t.user_id = u.id
-                ORDER BY reporting.time_stamp DESC
-        ''')
-        reportingEvents = []
-
-        for reportingEvent in reportingRaw:
-            [time_stamp, event_type, user_name, agent_name, host_name, taskID, task, results] = reportingEvent
-            reportingEvents.append({"timestamp":time_stamp, "event_type":event_type, "username":user_name, "agent_name":agent_name, "host_name":host_name, "taskID":taskID, "task":task, "results":results})
-
-        return jsonify({'reporting': reportingEvents})
-
-    @app.route('/api/reporting/agent/<string:reporting_agent>', methods=['GET'])
-    def get_reporting_agent(reporting_agent):
-        """
-        Returns JSON describing the reporting events from the backend database for
-        the agent specified by reporting_agent.
-        """
-
-        # first resolve the supplied name to a sessionID
-        results = execute_db_query(conn, 'SELECT session_id FROM agents WHERE name=?', [reporting_agent])
-        if results:
-            sessionID = results[0][0]
-        else:
-            return jsonify({'reporting': ''})
-
-        reportingRaw = execute_db_query(conn,
-                                        'SELECT ID, name, event_type, message, time_stamp, taskID FROM reporting WHERE name=?',
-                                        [sessionID])
-        reportingEvents = []
-
-        for reportingEvent in reportingRaw:
-            [ID, name, event_type, message, time_stamp, taskID] = reportingEvent
-            reportingEvents.append(
-                {"ID": ID, "agentname": name, "event_type": event_type, "message": json.loads(message),
-                 "timestamp": time_stamp, "taskID": taskID})
-
-        return jsonify({'reporting': reportingEvents})
-
-    @app.route('/api/reporting/type/<string:event_type>', methods=['GET'])
-    def get_reporting_type(event_type):
-        """
-        Returns JSON describing the reporting events from the backend database for
-        the event type specified by event_type.
-        """
-        reportingRaw = execute_db_query(conn,
-                                        'SELECT ID, name, event_type, message, time_stamp, taskID FROM reporting WHERE event_type=?',
-                                        [event_type])
-        reportingEvents = []
-
-        for reportingEvent in reportingRaw:
-            [ID, name, event_type, message, time_stamp, taskID] = reportingEvent
-            reportingEvents.append(
-                {"ID": ID, "agentname": name, "event_type": event_type, "message": json.loads(message),
-                 "timestamp": time_stamp, "taskID": taskID})
-
-        return jsonify({'reporting': reportingEvents})
-
-    @app.route('/api/reporting/msg/<string:msg>', methods=['GET'])
-    def get_reporting_msg(msg):
-        """
-        Returns JSON describing the reporting events from the backend database for
-        the any messages with *msg* specified by msg.
-        """
-        reportingRaw = execute_db_query(conn,
-                                        "SELECT ID, name, event_type, message, time_stamp, taskID FROM reporting WHERE message like ?",
-                                        ['%' + msg + '%'])
-        reportingEvents = []
-
-        for reportingEvent in reportingRaw:
-            [ID, name, event_type, message, time_stamp, taskID] = reportingEvent
-            reportingEvents.append(
-                {"ID": ID, "agentname": name, "event_type": event_type, "message": json.loads(message),
-                 "timestamp": time_stamp, "taskID": taskID})
-
-        return jsonify({'reporting': reportingEvents})
-
     @app.route('/api/admin/restart', methods=['GET', 'POST', 'PUT'])
     def signal_server_restart():
         """
@@ -437,22 +330,14 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     # wrap the Flask connection in SSL and start it
     certPath = os.path.abspath("./data/")
 
-    # support any version of tls
-    pyversion = sys.version_info
-    if pyversion[0] == 2 and pyversion[1] == 7 and pyversion[2] >= 13:
-        proto = ssl.PROTOCOL_TLS
-    elif pyversion[0] >= 3:
-        proto = ssl.PROTOCOL_TLS
-    else:
-        proto = ssl.PROTOCOL_SSLv23
-
-    context = ssl.SSLContext(proto)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS)
     context.load_cert_chain("%s/empire-chain.pem" % (certPath), "%s/empire-priv.key" % (certPath))
 
     if insecure:
         app.run(host='0.0.0.0', port=int(port), threaded=True)
     else:
         app.run(host='0.0.0.0', port=int(port), ssl_context=context, threaded=True)
+
 
 if __name__ == '__main__':
     args = arguments.args

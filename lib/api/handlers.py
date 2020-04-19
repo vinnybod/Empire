@@ -14,7 +14,7 @@ def requires_admin(fn):
         if g.user.admin:
             return fn(*args, **kwargs)
         else:
-            abort(401,
+            abort(403,
                   message='You do not have the required access level required.')
 
     return wrapper
