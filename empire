@@ -86,7 +86,6 @@ def execute_db_query(conn, query, args=None):
 #
 #    Verb     URI                                                   Action
 #    ----     ---                                                   ------
-#    GET      http://localhost:1337/api/creds                       return stored credentials
 #    POST     http://localhost:1337/api/creds                       add creds to the database
 #
 #    GET      http://localhost:1337/api/reporting                   return all logged events
@@ -188,22 +187,8 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         code = error.code if hasattr(error, 'code') else '500'
         return make_response(jsonify({'error': repr(error)}), code)
 
-    @app.route('/api/creds', methods=['GET'])
-    def get_creds():
-        """
-        Returns JSON describing the credentials stored in the backend database.
-        """
-        credsRaw = execute_db_query(conn,
-                                    'SELECT ID, credtype, domain, username, password, host, os, sid, notes FROM credentials')
-        creds = []
-
-        for credRaw in credsRaw:
-            [ID, credtype, domain, username, password, host, os, sid, notes] = credRaw
-            creds.append({"ID": ID, "credtype": credtype, "domain": domain, "username": username, "password": password,
-                          "host": host, "os": os, "sid": sid, "notes": notes})
-
-        return jsonify({'creds': creds})
-
+    # todo vr, any idea why we would want to post credentials? If not let's remove until we have a use case.
+    #  If we bring it back, we can do schema validation
     @app.route('/api/creds', methods=['POST'])
     def add_creds():
         """

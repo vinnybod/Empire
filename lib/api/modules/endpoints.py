@@ -51,9 +51,9 @@ class ModuleName(MethodView):
         Returns JSON describing the specified currently module.
         """
         # Why we slug: https://github.com/pallets/flask/issues/2507
-        # Slashes in the path variable that aren't url-encoded are a nono.
-        # Even when url encoding a / to %2f, the routing fails.
         # https://github.com/pallets/flask/issues/900
+        # Slashes in the path variable that aren't url-encoded are a no-no.
+        # Even when url encoding a / to %2f, the routing fails.
         if module_slug not in g.main.modules.slug_mappings:
             abort(404, message='module name %s not found' % module_slug)
 
@@ -65,6 +65,7 @@ class ModuleName(MethodView):
         """
         Executes a given module name with the specified parameters.
         """
+        # TODO: For the agent field we could make it an array?
         if module_slug not in g.main.modules.slug_mappings:
             return abort(400, message='module name %s not found' % module_slug)
 
