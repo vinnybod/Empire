@@ -2,11 +2,9 @@
 
 from __future__ import print_function
 
-import json
 import logging
 import os
 import signal
-import sqlite3
 import ssl
 import subprocess
 import sys
@@ -37,46 +35,6 @@ if sys.version[0] == '2':
 
 global serverExitCommand
 serverExitCommand = 'restart'
-
-
-#####################################################
-#
-# Database interaction methods for the RESTful API
-#
-#####################################################
-
-
-def database_connect():
-    """
-    Connect with the backend ./empire.db sqlite database and return the
-    connection object.
-    """
-    try:
-        # set the database connectiont to autocommit w/ isolation level
-        conn = sqlite3.connect('./data/' + arguments.args.db, check_same_thread=False)
-        conn.text_factory = str
-        conn.isolation_level = None
-        return conn
-
-    except Exception:
-        print(helpers.color("[!] Could not connect to database"))
-        print(helpers.color("[!] Please run setup_database.py"))
-        sys.exit()
-
-
-def execute_db_query(conn, query, args=None):
-    """
-    Execute the supplied query on the provided db conn object
-    with optional args for a paramaterized query.
-    """
-    cur = conn.cursor()
-    if args:
-        cur.execute(query, args)
-    else:
-        cur.execute(query)
-    results = cur.fetchall()
-    cur.close()
-    return results
 
 
 ####################################################################
@@ -118,8 +76,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
     api.register_blueprint(cred_blp)
     api.register_blueprint(repo_blp)
 
-    conn = database_connect()
-
     main = empireMenu
 
     global serverExitCommand
@@ -142,7 +98,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         # suppress all stdout and don't initiate the main cmdloop
         sys.stdout = open(os.devnull, 'w')
 
-    # validate API token before every request except for the login URI
     @app.before_request
     def check_token():
         """
@@ -282,9 +237,6 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
 
         print("\n * Shutting down Empire RESTful API")
 
-        if conn:
-            conn.close()
-
         if suppress:
             print(" * Shutting down the Empire instance")
             main.shutdown()
@@ -328,10 +280,10 @@ def start_restful_api(empireMenu, suppress=False, username=None, password=None, 
         pass
 
     # wrap the Flask connection in SSL and start it
-    certPath = os.path.abspath("./data/")
+    cert_path = os.path.abspath("./data/")
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLS)
-    context.load_cert_chain("%s/empire-chain.pem" % (certPath), "%s/empire-priv.key" % (certPath))
+    context.load_cert_chain("%s/empire-chain.pem" % (cert_path), "%s/empire-priv.key" % (cert_path))
 
     if insecure:
         app.run(host='0.0.0.0', port=int(port), threaded=True)
