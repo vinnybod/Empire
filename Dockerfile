@@ -32,8 +32,7 @@ RUN apt-get update && \
         lsb-release \
 	    make \
 	    g++ \
-	    python-dev \
-	    python-m2crypto \
+	    python3-dev \
 	    swig \
 	    python-pip \
 	    libxml2-dev \
@@ -66,4 +65,4 @@ RUN rm -f ./data/empire.db
 
 RUN ./cert.sh
 
-CMD ["pipenv", "run", "python", "empire"]
+CMD ["pipenv", "run", "python", "empire", "--rest"]

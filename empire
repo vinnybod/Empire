@@ -51,6 +51,13 @@ serverExitCommand = 'restart'
 #    GET      http://localhost:1337/api/admin/restart               restart the RESTful API
 #    GET      http://localhost:1337/api/admin/shutdown              shutdown the RESTful API
 #
+#    GET      http://localhost:1337/api/users                       return all users from database
+#    GET      http://localhost:1337/api/users/X                     return the user with id X
+#    GET      http://localhost:1337/api/users/me                    return the user for the given token
+#    POST     http://localhost:1337/api/users                       add a new user
+#    PUT      http://localhost:1337/api/users/Y/disable             disable/enable user Y
+#    PUT      http://localhost:1337/api/users/Y/updatepassword      update password for user Y
+#
 ####################################################################
 
 def start_restful_api(empireMenu, suppress=False, username=None, password=None, port=1337, insecure=False):
@@ -302,8 +309,12 @@ if __name__ == '__main__':
     if args.version:
         print(empire.VERSION)
 
-    if args.reset_empire:
-        subprocess.call("./setup/reset.sh")
+    if args.reset:
+        choice = input("\n [>] Would you like to reset your Empire instance? [y/N]: ")
+        if choice.lower() == "y":
+            subprocess.call("./setup/reset.sh")
+        else:
+            pass
 
     elif args.rest:
         # start an Empire instance and RESTful API

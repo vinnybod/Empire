@@ -91,14 +91,14 @@ fi
 
 if lsb_release -d | grep -q "Kali"; then
 	apt-get update
-	sudo apt-get install -y make autoconf g++ python-dev python-m2crypto swig python-pip libxml2-dev default-jdk zlib1g-dev libssl1.1 build-essential libssl-dev libxml2-dev zlib1g-dev
+	sudo apt-get install -y make autoconf g++ python3-dev swig python3-pip libxml2-dev default-jdk zlib1g-dev libssl1.1 build-essential libssl-dev libxml2-dev zlib1g-dev
 elif lsb_release -d | grep -q "Ubuntu"; then
 	sudo apt-get update
-	sudo apt-get install -y make autoconf g++ python-dev python-m2crypto swig python-pip libxml2-dev default-jdk libssl1.1 libssl-dev build-essential
+	sudo apt-get install -y make autoconf g++ python3-dev swig python3-pip libxml2-dev default-jdk libssl1.1 libssl-dev build-essential
 else
 	echo "Unknown distro - Debian/Ubuntu Fallback"
 	sudo apt-get update
-	sudo apt-get install -y make autoconf g++ python-dev python-m2crypto swig python-pip libxml2-dev default-jdk libffi-dev libssl1.1 libssl-dev build-essential
+	sudo apt-get install -y make autoconf g++ python3-dev swig python3-pip libxml2-dev default-jdk libffi-dev libssl1.1 libssl-dev build-essential
 fi
 
 install_xar
